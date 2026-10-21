@@ -1,6 +1,6 @@
 {
   "name": "random-motion-16-v3",
-  "version": "3.0.0",
+  "version": "3.1.0",
   "private": true,
   "description": "Event-driven evolution of the user's Random Motion 16 v4.1 device",
   "engines": { "node": ">=20" },

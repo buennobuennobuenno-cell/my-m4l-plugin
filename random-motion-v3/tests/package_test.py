@@ -52,11 +52,44 @@ class PackageTests(unittest.TestCase):
         for channel in (0,1):
             self.assertIn({"source":["audio_in",channel],"destination":["audio_out",channel]},self.wires)
 
-    def test_one_shared_jsui_and_one_editor_replace_the_previous_32_pairs(self):
-        self.assertEqual(sum(b["maxclass"]=="jsui" for b in self.boxes.values()),1)
+    def test_two_bounded_jsui_and_one_editor_replace_the_previous_32_pairs(self):
+        self.assertEqual(sum(b["maxclass"]=="jsui" for b in self.boxes.values()),2)
         self.assertEqual(sum(b["maxclass"]=="flonum" for b in self.boxes.values()),1)
         self.assertLess(len(self.boxes),100)
         self.assertEqual(self.boxes["bound_editor"]["hidden"],1)
+
+    def test_no_numeric_canvas_overlaps_any_map_button_or_target_label(self):
+        # V3.0 placed a 720x112 canvas across all native controls. Object array
+        # order does not guarantee native Max drawing or mouse hit order.
+        def intersects(a,b):
+            x,y,w,h=a;xx,yy,ww,hh=b
+            return x<xx+ww and xx<x+w and y<yy+hh and yy<y+h
+        canvases=[b for b in self.boxes.values() if b["maxclass"]=="jsui"]
+        for n in range(1,17):
+            for suffix in ("map","name"):
+                native=self.boxes["lane"+str(n)+"_"+suffix]
+                for canvas in [*canvases,self.boxes["bound_editor"]]:
+                    self.assertFalse(intersects(canvas["presentation_rect"],native["presentation_rect"]),
+                                     (canvas["id"],native["id"]))
+        for bank in range(2):
+            canvas=self.boxes["limits"+str(bank)]
+            self.assertEqual(canvas["varname"],canvas["id"])
+            self.assertEqual(canvas["presentation_rect"],[bank*360+234,40,118,112])
+
+    def test_all_sixteen_map_buttons_are_visible_clickable_and_wired_to_their_slot(self):
+        for n in range(1,17):
+            key="lane"+str(n)+"_map";button=self.boxes[key]
+            self.assertEqual(button["maxclass"],"textbutton")
+            self.assertEqual(button["text"],"Map")
+            self.assertEqual(button["mode"],1)
+            self.assertEqual(button["presentation"],1)
+            self.assertFalse(button.get("hidden",0))
+            self.assertFalse(button.get("ignoreclick",0))
+            self.assertEqual(button["presentation_rect"][2:],[44,14])
+            self.assertNotEqual(button["bgcolor"],button["textcolor"])
+            self.assertEqual(self.boxes[key+"_msg"]["text"],"prepend map "+str(n))
+            self.assertIn({"source":[key,0],"destination":[key+"_msg",0]},self.wires)
+            self.assertIn({"source":[key+"_msg",0],"destination":["engine",0]},self.wires)
 
     def test_all_wires_and_native_control_handlers_exist(self):
         for wire in self.wires:

@@ -8,13 +8,13 @@
     "pdf_archive_files_verified": 133
   },
   "output_device": {
-    "filename": "Random_Motion_16_V3.amxd",
-    "bytes": 106476,
-    "sha256": "72a9d1c35d6b8142f2b3356f4523ac85254f92923cc17ce5f62184e95a8b636e"
+    "filename": "Random_Motion_16_V3_1.amxd",
+    "bytes": 107793,
+    "sha256": "f1b0a06fa566d2839ebf923f56d257a104c19962ddc0ccd7de65b9593770ef67"
   },
   "checks": {
-    "v3_javascript_passed": 61,
-    "v3_python_passed": 10,
+    "v3_javascript_passed": 62,
+    "v3_python_passed": 12,
     "legacy_javascript_passed": 27,
     "legacy_python_passed": 8,
     "failed": 0,
@@ -23,9 +23,9 @@
   },
   "patch": {
     "original_objects": 215,
-    "v3_objects": 95,
+    "v3_objects": 96,
     "original_jsui": 32,
-    "v3_jsui": 1,
+    "v3_jsui": 2,
     "original_numeric_editors": 32,
     "v3_numeric_editors": 1,
     "original_native_remotes": 16,
@@ -33,7 +33,7 @@
   },
   "control_operations": {
     "scope": "Counts in a Node.js mock host, not native CPU/DSP/memory measurement. Proxy instrumentation is test-only.",
-    "controller_sha256": "df2d76a278dde2c7b1a200425fdc778926a0c12c07ed2716199c56d40c851a00",
+    "controller_sha256": "04a68e6b8cdec5c4affdd4c284f56ab4eae375855229f65c9731ac9c2a091fc3",
     "comparisons": [
       {
         "active": 1,
@@ -153,5 +153,26 @@
     "cpu_or_dsp_measured": false
   },
   "motion_engine_identical_to_v41": true,
-  "motion_engine_sha256": "f5df5e6d426e59b64302edda9bebfc523f29eb548637e547dc4c796fbeee6aff"
+  "motion_engine_sha256": "f5df5e6d426e59b64302edda9bebfc523f29eb548637e547dc4c796fbeee6aff",
+  "version": "3.1",
+  "ui_fix": {
+    "reported_issue": "V3 Map buttons not visible in the user host; broad JSUI overlaps all 16 native buttons.",
+    "v3_overlapped_map_buttons": 16,
+    "v3_1_overlapped_map_buttons": 0,
+    "canvas_rectangles": [
+      [
+        234,
+        40,
+        118,
+        112
+      ],
+      [
+        594,
+        40,
+        118,
+        112
+      ]
+    ],
+    "verified": "Frozen device geometry, all 16 button attributes and wiring, both controller/panel routes and all 32 numeric fields. Native Max/Live GUI still unavailable."
+  }
 }

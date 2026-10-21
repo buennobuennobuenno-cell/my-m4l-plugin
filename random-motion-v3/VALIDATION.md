@@ -1,8 +1,25 @@
-# Analyse und Prüfbericht — Random Motion 16 / V3
+# Analyse und Prüfbericht — Random Motion 16 / V3.1
 
 Stand: 22. Oktober 2026. Ausgangspunkt ist die angehängte Datei
 `Random_Motion_16 (1).amxd`, intern **v4.1**. V3 bezeichnet diese neue Iteration.
 Maschinenlesbare Ergebnisse: [validation/results.json](validation/results.json).
+
+## Korrektur der Map-Oberfläche in V3.1
+
+Der Nutzer meldete, dass die Map-Buttons der veröffentlichten V3 nicht sichtbar
+sind. Die Patch-Prüfung zeigt: Alle 16 Buttons waren vorhanden, ihre Rechtecke
+und die Zielnamen lagen jedoch innerhalb der 720 × 112 großen JSUI-Fläche.
+Die Reihenfolge der Objekte im JSON war kein verlässlicher Schutz vor Überdeckung
+und blockierter Mausbedienung in Max. Die früheren Größenprüfungen erfassten
+diese Überschneidung nicht.
+
+V3.1 verwendet zwei Flächen mit je 118 × 112 Pixeln, ausschließlich über den
+jeweiligen Min/Max-Spalten. Kein Map-Button oder Zielname überschneidet sich mit
+einer JSUI-Fläche. Neue Pakettests prüfen diese Geometrie sowie Sichtbarkeit,
+Bedienattribute und vollständige Slot-Verkabelung aller 16 Map-Buttons. Die
+UI-/Controller-Tests prüfen beide Teilflächen und alle 32 Eingabefelder.
+Zufallskern, Scheduler und native DSP-Wege wurden dabei nicht verändert.
+Eine native Sicht- und Bedienprüfung in Ableton steht weiterhin aus.
 
 ## Hintergrund und erhaltene Anforderungen
 
@@ -36,10 +53,10 @@ erhalten. Eine neue Datei aktualisiert alte Live-Instanzen nicht automatisch.
 
 ## Befund und Umsetzung
 
-| Befund in v4.1 | Umsetzung in V3 |
+| Befund in v4.1 | Umsetzung in V3.1 |
 |---|---|
 | Der eigene Kurven-DSP ist schon entfernt. | Native Zielwert-/Daueraufträge beibehalten; keine eigene Signal- oder Kurvenkette ergänzt. |
-| 32 JSUI-Zahlenfelder plus 32 verborgene Flonum-Editoren und separate Nachrichtenwege. | Ein gemeinsames JSUI und ein beweglicher Editor für alle 32 Grenzen. |
+| 32 JSUI-Zahlenfelder plus 32 verborgene Flonum-Editoren und separate Nachrichtenwege. | Zwei schmale JSUI-Flächen und ein beweglicher Editor für alle 32 Grenzen. |
 | Der Scheduler durchsucht alle 16 Slots beim Auslösen und erneut beim Planen. | Sortierte Liste der tatsächlich bewegten Slots; ein Durchlauf erledigt beide Aufgaben. |
 | Jede abgelaufene Einmal-Task wird nochmals abgebrochen. | Im normalen Callback kein zusätzliches `Task.cancel()`. |
 | Laufende Diagnoseanzeige sucht Oberflächenobjekte und setzt Text. | Keine periodischen GUI-Nachrichten. Statusänderungen und Fehler bleiben sichtbar. |
@@ -64,16 +81,16 @@ Sie beobachten keine laufenden Parameterwerte und erzeugen keinen eigenen DSP.
 
 ## Messbare Reduktion
 
-| Statische Größe | v4.1 | V3 |
+| Statische Größe | v4.1 | V3.1 |
 |---|---:|---:|
-| Max-Objekte | 215 | 95 |
-| JSUI-Objekte | 32 | 1 |
+| Max-Objekte | 215 | 96 |
+| JSUI-Objekte | 32 | 2 |
 | native Zahleneditoren | 32 | 1 |
 | `live.remote~` | 16 | 16 |
-| AMXD-Dateigröße | 198.241 Bytes | 106.476 Bytes |
+| AMXD-Dateigröße | 198.241 Bytes | 107.793 Bytes |
 
 Der Codec und die eingebetteten Ressourcen werden unabhängig gelesen und
-geprüft. Weniger Objekte und eine um 46,3 % kleinere Datei belegen keine gleich
+geprüft. Weniger Objekte und eine um 45,6 % kleinere Datei belegen keine gleich
 große Ersparnis von CPU, DSP oder Speicher. Die nativen Fernsteuerungen und die
 Zieleffekte benötigen weiterhin Verarbeitung.
 
@@ -93,10 +110,10 @@ Native-Ausgabe und DSP-Ausführung wurden dabei nicht ausgeführt.
 
 ## Testergebnisse
 
-**71 V3-Prüfungen bestanden:** 61 JavaScript-Tests und 10 Python-Pakettests,
+**74 V3.1-Prüfungen bestanden:** 62 JavaScript-Tests und 12 Python-Pakettests,
 keine fehlgeschlagenen oder übersprungenen Tests. Der gemeinsame Projektlauf
 prüfte zusätzlich die erhaltenen 35 Tests des früheren Einzelparameter-Prototyps:
-**106 Prüfungen insgesamt**, beide Builds erfolgreich.
+**109 Prüfungen insgesamt**, beide Builds erfolgreich.
 
 Die V3-Prüfungen umfassen:
 
@@ -117,6 +134,8 @@ Die V3-Prüfungen umfassen:
   Löschen/Neumappen, Speicherzustand und Uhrzeitänderung.
 - Alle 32 Zahlenfelder: richtige Zuordnung, Rundung, Einerschritte,
   genaue Tastatureingabe, beweglicher Editor, gekreuzte Grenzen und Tooltips.
+- Alle 16 Map-Buttons: sichtbar und anklickbar konfiguriert, richtige Verkabelung,
+  keine Überschneidung mit einer Zahlenfläche oder einem Zahleneditor.
 - Fehlerisolation, leere/konstante Bereiche, veraltete Callbacks, ungültige
   Pfade, ungültige Uhrzeitwerte, Namensänderungen, Rack-Kopien und Rebind.
 - Ressourcenintegrität, direkte Stereoverbindung, 16 native Remote-Wege,
@@ -134,11 +153,12 @@ Hier steht Linux mit Node.js und Python zur Verfügung; Ableton Live und Max
 fehlen. Deshalb bleiben das native Laden der Datei, die Darstellung, tatsächliche
 Bedienung, native Referenzspeicherung und Audio-/DSP-Ausführung **ungetestet**.
 Die Beobachter- und Kurvenmodelle sind keine Implementierung der Live-Laufzeit.
-Die neue gebündelte GUI ist ein zusätzlicher Schwerpunkt für den ersten Hosttest.
+Die korrigierte GUI ist ein zusätzlicher Schwerpunkt für den nächsten Hosttest.
 
 In Live 11 zuerst eine neue Instanz in einem Test-Set einsetzen und prüfen:
 
-1. Datei lädt ohne fehlende Objekte/Skripte; alle 16 Zeilen sichtbar.
+1. Neue V3.1-Instanz lädt ohne fehlende Objekte/Skripte; alle 16 Map-Buttons und
+   Zielnamen sind sichtbar und jeder Button lässt sich anklicken.
 2. Auto Pan und Align Delay: Mapping, native Einheiten, Bereichsgrenzen,
    stetige und quantisierte Modi, Dezimal-Eingabe in beiden Spalten.
 3. Audio-Durchleitung, unterbrechbare Rampen, Bypass/Freigabe und Löschen.
@@ -166,5 +186,5 @@ RM16_MODEL_SECONDS=28800 RM16_REPORT_PATH=reports/long-model.json node --test te
 
 Builds und aktuelle Messlogs werden in ignorierten Ausgabeverzeichnissen erzeugt.
 Die eingefrorene Prüfzusammenfassung unter `validation/results.json` gehört zur
-vorliegenden V3-Datei, einschließlich deren SHA-256. Ein neuer Testlauf ersetzt
+vorliegenden V3.1-Datei, einschließlich deren SHA-256. Ein neuer Testlauf ersetzt
 diese Release-Zusammenfassung nicht automatisch.

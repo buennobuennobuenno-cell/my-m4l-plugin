@@ -8,7 +8,7 @@ ROOT=Path(__file__).resolve().parent
 sys.path.insert(0,str(ROOT.parent))
 from tools.build import collective
 
-STEM="Random_Motion_16_V3"
+STEM="Random_Motion_16_V3_1"
 SOURCES=["rm16_v3_mapping.js","rm16_v3_motion.js","rm16_v3_limits.js"]
 
 
@@ -65,17 +65,20 @@ def patch():
 
     visible("background","panel",None,(0,0,720,169),numinlets=1,numoutlets=0,
             background=1,bgcolor=[0.1,0.12,0.14,1],border=0,rounded=0,ignoreclick=1)
-    label("title","RANDOM MOTION 16  /  V3",(8,3,340,18),fontface=1)
+    label("title","RANDOM MOTION 16  /  V3.1",(8,3,340,18),fontface=1)
     label("auto","BEREIT",(575,3,135,18),varname="health")
     for bank in range(2):
         for key,text,x,w in [("target","Ziel",8,174),("map","Map / x",184,46),("lo","Min %",234,56),("hi","Max %",296,56)]:
             label("header_"+str(bank)+"_"+key,text,(bank*360+x,23,w,14))
-    # Draw before buttons/labels, so the broad jsui rectangle never covers Map.
-    visible("limits","jsui",None,(0,40,720,112),numinlets=1,numoutlets=1,
-            filename="rm16_v3_limits.js",varname="limits",parameter_enable=0,border=0,
-            bgcolor=[0.1,0.12,0.14,1],
-            hint="Ziehen: ganze Prozentpunkte. Doppelklick: genaue Zahl eingeben, Enter bestaetigt.")
-    wire("limits",0,"engine")
+    # Each canvas occupies only its two numeric columns. Native Map buttons and
+    # labels never intersect a jsui, regardless of Max's drawing/click order.
+    for bank in range(2):
+        name="limits"+str(bank)
+        visible(name,"jsui",None,(bank*360+234,40,118,112),numinlets=1,numoutlets=1,
+                filename="rm16_v3_limits.js",varname=name,parameter_enable=0,border=0,
+                bgcolor=[0.1,0.12,0.14,1],
+                hint="Ziehen: ganze Prozentpunkte. Doppelklick: genaue Zahl eingeben, Enter bestaetigt.")
+        wire(name,0,"engine")
     for n in range(1,17):
         bx=((n-1)//8)*360;y=40+((n-1)%8)*14;p="lane"+str(n)+"_"
         label(p+"name",str(n)+"  nicht zugeordnet",(bx+8,y,172,14),varname=p+"name")
@@ -98,7 +101,7 @@ def patch():
     return {"patcher":{"fileversion":1,"appversion":{"major":8,"minor":5,"revision":8,"architecture":"x64","modernui":1},
         "classnamespace":"box","rect":[80,80,1220,700],"openinpresentation":1,"devicewidth":720.0,
         "default_fontsize":11.0,"default_fontname":"Arial",
-        "description":"16 independent random streams. Native ramps. Map, Min, Max. V3 based on v4.1.",
+        "description":"16 independent random streams. Native ramps. Map, Min, Max. V3.1 based on v4.1.",
         "boxes":boxes,"lines":lines,"parameters":{"state":["Motion State","State",0],"inherited_shortname":1},
         "dependency_cache":[{"name":name,"type":"TEXT","implicit":1} for name in SOURCES],"autosave":0}}
 

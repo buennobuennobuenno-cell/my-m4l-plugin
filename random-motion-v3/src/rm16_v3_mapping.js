@@ -90,7 +90,9 @@ function newSeed(j) {
 }
 function syncLane(j) {
     var l = lanes[j], p = "lane" + (j + 1) + "_";
-    ui("limits", "row", j + 1, l.lo, l.hi);
+    var pane="limits"+Math.floor(j/8);
+    ui(pane,"bank",Math.floor(j/8));
+    ui(pane,"row",j+1,l.lo,l.hi);
     ui(p + "map", "texton", armed === j ? "..." : "x");
     ui(p + "map", "set", armed === j || !!l.link ? 1 : 0);
     var label = l.link ? l.link.label : "nicht zugeordnet";
@@ -416,7 +418,9 @@ function formatBounds(j) {
         catch (e) { formatted = String(raw) + " (API)"; }
         result.push(formatted);
     }
-    ui("limits","units",j+1,result[0],result[1]);
+    var pane="limits"+Math.floor(j/8);
+    ui(pane,"bank",Math.floor(j/8));
+    ui(pane,"units",j+1,result[0],result[1]);
     return result[0] + " bis " + result[1];
 }
 function initialize() {

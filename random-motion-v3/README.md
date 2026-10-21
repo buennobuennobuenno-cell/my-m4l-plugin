@@ -1,6 +1,12 @@
-# Random Motion 16 — V3
+# Random Motion 16 — V3.1
 
-**[Plugin direkt herunterladen (.amxd)](https://github.com/buennobuennobuenno-cell/my-m4l-plugin/raw/refs/heads/main/Random_Motion_16_V3.amxd)**
+**[Plugin direkt herunterladen (.amxd)](https://github.com/buennobuennobuenno-cell/my-m4l-plugin/raw/refs/heads/main/Random_Motion_16_V3_1.amxd)**
+
+**Korrektur in V3.1:** Die breite Zahlenoberfläche aus V3 überlappte alle
+Map-Buttons und Zielnamen. Zwei schmale Zahlenflächen liegen jetzt ausschließlich
+in den Min/Max-Spalten. Dadurch hängt der Zugriff auf Map nicht mehr von der
+Zeichen- oder Klickreihenfolge in Max ab. Als neue Instanz laden und den Titel
+**V3.1** prüfen. Bestehende V3-Instanzen werden nicht automatisch ausgetauscht.
 
 Weiterentwicklung des angehängten **Random Motion 16 v4.1**, mit 16 unabhängigen
 Zuordnungen. „V3“ ist der gewünschte Name dieser neuen Codex-Iteration; sie baut
@@ -67,9 +73,9 @@ Zufall noch absolute Unvorhersehbarkeit oder sämtliche mathematischen Verläufe
 
 ## Optimierungen und Fehlerbehandlung
 
-- **32 → 1 JSUI** und **32 → 1 Zahleneditor**. Die Anzeige wird nur bei
+- **32 → 2 JSUI** und **32 → 1 Zahleneditor**. Die Anzeige wird nur bei
   Konfigurationsänderungen gezeichnet; keine laufende Zielwertanimation.
-- **215 → 95 Max-Objekte**. Die 16 nativen Fernsteuerungen sind weiterhin nötig
+- **215 → 96 Max-Objekte**. Die 16 nativen Fernsteuerungen sind weiterhin nötig
   und werden unverändert über Zielwert-/Dauernachrichten angesprochen.
 - Nur tatsächlich bewegte Slots stehen in der laufenden Liste. Eine Prüfung
   ermittelt gleichzeitig die fälligen Aufträge und den nächsten Termin.
@@ -110,7 +116,7 @@ editierbare `.maxpat`, die drei Skripte und eine ungefrorene `_Source.amxd`.
 Für die Source-Alternative müssen die drei Skripte im gleichen Ordner bleiben.
 Die Hauptdatei enthält sie bereits.
 
-Die Datei `Random_Motion_16_V3.amxd` im Repository-Stamm ist die veröffentlichte
+Die Datei `Random_Motion_16_V3_1.amxd` im Repository-Stamm ist die veröffentlichte
 Download-Kopie. Ein normaler Build schreibt nur ins ignorierte `dist/`. Für eine
 neue Version nach Tests die Stammdatei bewusst aus dem neuen Build aktualisieren.
 

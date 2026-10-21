@@ -1,6 +1,11 @@
-# Random Motion 16 — V3
+# Random Motion 16 — V3.1
 
-**[Plugin direkt herunterladen (.amxd)](https://github.com/buennobuennobuenno-cell/my-m4l-plugin/raw/refs/heads/main/Random_Motion_16_V3.amxd)**
+**[Plugin direkt herunterladen (.amxd)](https://github.com/buennobuennobuenno-cell/my-m4l-plugin/raw/refs/heads/main/Random_Motion_16_V3_1.amxd)**
+
+V3.1 korrigiert die verdeckten Map-Buttons aus V3: Zwei schmale Zahlenflächen
+liegen ausschließlich über Min/Max. Keine Zahlenfläche überlappt mehr einen
+der 16 Map-Buttons oder Zielnamen. Die neue Datei als neue Instanz laden;
+im Gerät steht **V3.1**. Eine vorhandene V3-Instanz aktualisiert sich nicht selbst.
 
 16 unabhängige Zufalls-Mappings für Ableton Live / Max for Live, insbesondere
 für **Auto Pan und Align Delay**. Einmal zuordnen, bei Bedarf Min/Max begrenzen,

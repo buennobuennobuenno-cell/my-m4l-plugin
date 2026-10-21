@@ -1,12 +1,18 @@
-/* One jsui for all 32 limits, replacing 32 independent JS contexts.
+/* Two narrow jsui panels for 32 limits, replacing 32 independent JS contexts.
+   Each canvas is confined to numeric fields; it cannot cover a Map button.
    Redraws only after bounds change or Max requests a paint. ES5 / Max 8. */
 autowatch=0;
 inlets=1;
 outlets=1;
 mgraphics.init();mgraphics.relative_coords=0;mgraphics.autofill=0;
-var values=[],unitLabels=[],drag=null,lastHit=null,hover="";
+var values=[],unitLabels=[],bankIndex=0,drag=null,lastHit=null,hover="";
 for (var n=0;n<16;n++) {values.push([0,100]);unitLabels.push(["",""]);}
 function clip(x) {return Math.max(0,Math.min(100,x));}
+function bank(index) {
+    index=Number(index);
+    if ((index!==0 && index!==1) || index===bankIndex) return;
+    bankIndex=index;drag=null;lastHit=null;hover="";mgraphics.redraw();
+}
 function row(number,lo,hi) {
     var j=Number(number)-1;
     if (j<0 || j>=16 || j!==Math.floor(j) || !isFinite(lo) || !isFinite(hi)) return;
@@ -20,19 +26,19 @@ function units(number,lo,hi) {
     unitLabels[j]=[String(lo),String(hi)];
 }
 function hit(x,y) {
-    if (!isFinite(x) || !isFinite(y) || x<0 || x>=720 || y<0 || y>=112) return null;
-    var bank=Math.floor(x/360),local=x-bank*360,key=-1;
-    if (local>=234 && local<290) key=0;
-    else if (local>=296 && local<352) key=1;
+    if (!isFinite(x) || !isFinite(y) || x<0 || x>=118 || y<0 || y>=112) return null;
+    var key=-1;
+    if (x<56) key=0;
+    else if (x>=62) key=1;
     if (key<0) return null;
-    return {j:bank*8+Math.floor(y/14),key:key};
+    return {j:bankIndex*8+Math.floor(y/14),key:key};
 }
 function paint() {
     mgraphics.set_source_rgba(0.1,0.12,0.14,1);
-    mgraphics.rectangle(0,0,720,112);mgraphics.fill();
+    mgraphics.rectangle(0,0,118,112);mgraphics.fill();
     mgraphics.select_font_face("Arial");mgraphics.set_font_size(10);
-    for (var j=0;j<16;j++) for (var key=0;key<2;key++) {
-        var x=Math.floor(j/8)*360+(key?296:234),y=(j%8)*14;
+    for (var rowIndex=0;rowIndex<8;rowIndex++) for (var key=0;key<2;key++) {
+        var j=bankIndex*8+rowIndex,x=key?62:0,y=rowIndex*14;
         mgraphics.set_source_rgba(0.13,0.15,0.17,1);
         mgraphics.rectangle(x,y,56,14);mgraphics.fill();
         mgraphics.set_source_rgba(0.94,0.95,0.95,1);

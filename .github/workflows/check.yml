@@ -16,5 +16,5 @@ jobs:
         with:
           name: Max-for-Live-devices
           path: |
-            random-motion-v3/dist/Random_Motion_16_V3.amxd
+            random-motion-v3/dist/Random_Motion_16_V3_1.amxd
             dist/Set-and-Forget-Chaos.zip
