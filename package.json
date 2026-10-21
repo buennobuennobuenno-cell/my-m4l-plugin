@@ -1,0 +1,12 @@
+{
+  "name": "set-and-forget-chaos",
+  "version": "0.1.0",
+  "private": true,
+  "description": "A one-mapping, autonomous chaos modulator for Max for Live.",
+  "engines": { "node": ">=20" },
+  "scripts": {
+    "build": "python3 tools/build.py",
+    "test": "node --test test/*.test.cjs && python3 -m unittest discover -s test -p '*_test.py'",
+    "check": "npm test && npm run build"
+  }
+}

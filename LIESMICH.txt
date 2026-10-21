@@ -1,0 +1,47 @@
+SET / FORGET CHAOS - Version 0.1.0 (Prototyp)
+
+Einmal zuweisen. Danach macht der Regler sein eigenes Ding.
+
+DU BRAUCHST
+Ableton Live auf Mac oder Windows mit Max for Live (z.B. Live Suite).
+Zielplattform: Live 11/12 mit Max 8.5 oder neuer.
+
+SO GEHT'S
+1. ZIP entpacken.
+2. "Set and Forget Chaos.amxd" aus dem entpackten Ordner in eine
+   Audiospur ziehen. Auf einer MIDI-Spur hinter das Instrument setzen.
+3. MAP druecken und dann einen Regler in Live anklicken, z.B. die
+   Frequenz von Auto Filter. Ein anderer zuweisbarer Parameter geht auch.
+4. Fertig. Der angezeigte Zielparameter bewegt sich automatisch.
+
+Keine Geschwindigkeits-, Intensitaets- oder Zufallsregler einstellen.
+Die Zuordnung bleibt fest; zufaellig veraendert wird der Parameterwert,
+nicht die Wahl des Zielparameters. Ein Geraet steuert einen Parameter.
+Fuer mehrere Parameter einfach weitere Instanzen verwenden.
+
+BEDIENUNG
+RUNNING anklicken: pausieren und den Zielregler freigeben.
+PAUSED anklicken: am aktuellen Reglerwert weitermachen.
+CLEAR: Zuordnung entfernen.
+MAP erneut anklicken: eine neue Zuordnung waehlen oder Auswahl abbrechen.
+Das Live-Set speichern, um die Zuordnung und den Pausenstatus zu behalten.
+
+DRIFT = langsame Fahrten, JUMP = Spruenge, FLUTTER = kleine schnelle
+Bewegungen, HOLD = bewusste Ruhe. Alles wechselt zufaellig, ohne Taktraster.
+Der gesamte Wertebereich des Zielparameters wird verwendet.
+Die Prozentanzeige zeigt den Modulationswert, nicht den Audiopegel.
+Das Audiosignal wird unveraendert durchgelassen; es wird kein MIDI erzeugt.
+
+TESTSTATUS
+Zufallslogik, Controller mit nachgebildeter Live API und Dateistruktur
+werden automatisch in Linux getestet. Oeffnen, Klang, Bedienung und das
+Speichern/Laden in echtem Ableton Live sind noch nicht verifiziert.
+In der Cloud steht Ableton Live/Max nicht zur Verfuegung.
+
+WENN ETWAS NICHT KLAPPT
+Pruefen, ob Max for Live installiert ist und die ZIP entpackt wurde.
+"Open this device inside Ableton Live": die .amxd in Live laden.
+"Target unavailable": MAP druecken und einen anderen Regler anklicken.
+Ist bereits derselbe Regler ausgewaehlt und MAP reagiert nicht, einmal
+einen anderen Regler anklicken und anschliessend das gewuenschte Ziel.
+Ein Screenshot der Fehlermeldung bzw. der Max-Konsole hilft beim Nachbessern.
