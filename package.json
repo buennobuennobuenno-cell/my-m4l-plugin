@@ -5,8 +5,8 @@
   "description": "A one-mapping, autonomous chaos modulator for Max for Live.",
   "engines": { "node": ">=20" },
   "scripts": {
-    "build": "python3 tools/build.py",
-    "test": "node --test test/*.test.cjs && python3 -m unittest discover -s test -p '*_test.py'",
+    "build": "python3 tools/build.py && python3 random-motion-v3/build.py",
+    "test": "node --test test/*.test.cjs && python3 -m unittest discover -s test -p '*_test.py' && npm --prefix random-motion-v3 test",
     "check": "npm test && npm run build"
   }
 }

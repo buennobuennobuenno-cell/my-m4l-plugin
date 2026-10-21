@@ -1,0 +1,157 @@
+{
+  "date": "2026-10-22",
+  "input_device": {
+    "filename": "Random_Motion_16 (1).amxd",
+    "bytes": 198241,
+    "sha256": "1538ec4deb8ff5fc172c5a74fde8ba0c3dd232670eca008d474293ed3c3be40d",
+    "archived_version": "4.1",
+    "pdf_archive_files_verified": 133
+  },
+  "output_device": {
+    "filename": "Random_Motion_16_V3.amxd",
+    "bytes": 106476,
+    "sha256": "72a9d1c35d6b8142f2b3356f4523ac85254f92923cc17ce5f62184e95a8b636e"
+  },
+  "checks": {
+    "v3_javascript_passed": 61,
+    "v3_python_passed": 10,
+    "legacy_javascript_passed": 27,
+    "legacy_python_passed": 8,
+    "failed": 0,
+    "skipped": 0,
+    "lifecycle_operations": 2000
+  },
+  "patch": {
+    "original_objects": 215,
+    "v3_objects": 95,
+    "original_jsui": 32,
+    "v3_jsui": 1,
+    "original_numeric_editors": 32,
+    "v3_numeric_editors": 1,
+    "original_native_remotes": 16,
+    "v3_native_remotes": 16
+  },
+  "control_operations": {
+    "scope": "Counts in a Node.js mock host, not native CPU/DSP/memory measurement. Proxy instrumentation is test-only.",
+    "controller_sha256": "df2d76a278dde2c7b1a200425fdc778926a0c12c07ed2716199c56d40c851a00",
+    "comparisons": [
+      {
+        "active": 1,
+        "baseline": {
+          "active_slots": 1,
+          "callbacks": 20000,
+          "native_value_commands": 20000,
+          "slot_array_reads": 734433,
+          "api_calls": 0,
+          "schedules": 20000,
+          "cancels": 20000,
+          "lookups": 2153,
+          "uiMessages": 2153,
+          "clockReads": 40000
+        },
+        "v3": {
+          "active_slots": 1,
+          "callbacks": 20000,
+          "native_value_commands": 20000,
+          "slot_array_reads": 40000,
+          "api_calls": 0,
+          "schedules": 20000,
+          "cancels": 0,
+          "lookups": 0,
+          "uiMessages": 0,
+          "clockReads": 40000
+        }
+      },
+      {
+        "active": 4,
+        "baseline": {
+          "active_slots": 4,
+          "callbacks": 20000,
+          "native_value_commands": 20037,
+          "slot_array_reads": 822903,
+          "api_calls": 0,
+          "schedules": 20000,
+          "cancels": 20000,
+          "lookups": 718,
+          "uiMessages": 718,
+          "clockReads": 40000
+        },
+        "v3": {
+          "active_slots": 4,
+          "callbacks": 20000,
+          "native_value_commands": 20037,
+          "slot_array_reads": 100037,
+          "api_calls": 0,
+          "schedules": 20000,
+          "cancels": 0,
+          "lookups": 0,
+          "uiMessages": 0,
+          "clockReads": 40000
+        }
+      },
+      {
+        "active": 16,
+        "baseline": {
+          "active_slots": 16,
+          "callbacks": 20000,
+          "native_value_commands": 20186,
+          "slot_array_reads": 1300385,
+          "api_calls": 0,
+          "schedules": 20000,
+          "cancels": 20000,
+          "lookups": 199,
+          "uiMessages": 199,
+          "clockReads": 40000
+        },
+        "v3": {
+          "active_slots": 16,
+          "callbacks": 20000,
+          "native_value_commands": 20186,
+          "slot_array_reads": 340186,
+          "api_calls": 0,
+          "schedules": 20000,
+          "cancels": 0,
+          "lookups": 0,
+          "uiMessages": 0,
+          "clockReads": 40000
+        }
+      }
+    ]
+  },
+  "long_model": {
+    "scope": "event arithmetic model only; excludes Max Task scheduling, native ramps, Live and target DSP",
+    "seconds": 28800,
+    "lanes": 16,
+    "events": 2871060,
+    "events_per_second": 99.68958333333333,
+    "per_lane": [
+      179954,
+      178940,
+      179042,
+      178636,
+      179898,
+      181049,
+      178812,
+      179453,
+      178842,
+      179819,
+      178876,
+      180912,
+      180095,
+      179325,
+      178958,
+      178449
+    ],
+    "max_event_gap_ms": 9854.228252217174
+  },
+  "native_host": {
+    "available": false,
+    "load_tested": false,
+    "gui_tested": false,
+    "native_ramps_tested": false,
+    "native_persistence_tested": false,
+    "cpu_or_dsp_measured": false
+  },
+  "motion_engine_identical_to_v41": true,
+  "motion_engine_sha256": "f5df5e6d426e59b64302edda9bebfc523f29eb548637e547dc4c796fbeee6aff"
+}

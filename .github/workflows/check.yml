@@ -14,5 +14,7 @@ jobs:
       - run: npm run check
       - uses: actions/upload-artifact@v4
         with:
-          name: Set-and-Forget-Chaos
-          path: dist/Set-and-Forget-Chaos.zip
+          name: Max-for-Live-devices
+          path: |
+            random-motion-v3/dist/Random_Motion_16_V3.amxd
+            dist/Set-and-Forget-Chaos.zip
