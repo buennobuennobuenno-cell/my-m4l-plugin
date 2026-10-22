@@ -104,7 +104,7 @@ inline void poke(AllData& d,double v,double f,double c){d.writes++;d.values[d.in
         return_type = "double" if arity == 1 else "std::tuple<" + ",".join(["double"] * arity) + ">"
         locals_ = names_assigned(body) - set(params) - {n for n, _ in histories}
         signature = ", ".join("double " + p for p in params)
-        declaration = "double " + ",".join(n + "=0" for n in sorted(locals_)) + ";\n"
+        declaration = ("double " + ",".join(n + "=0" for n in sorted(locals_)) + ";\n") if locals_ else ""
         if histories:
             cls = "All" + name.removeprefix("all_").title()
             stateful[name] = cls

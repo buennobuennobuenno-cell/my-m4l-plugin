@@ -1,5 +1,6 @@
-// All 1.0.0. Native, sample-clocked input processing; no autonomous audio source.
-// Fixed memory. Integer delay addresses. All random states are local to an instance.
+// All 2.0.0. Feed-forward attenuation, stereo routing and integer delays only.
+// Finite pseudorandom state, not a physical entropy source or a Bernoulli proof.
+// No repeat rejection, small-change bias, feedback, waveshaper or audio generator.
 
 all_random(a, b) {
     aa = 40014 * a;
@@ -11,46 +12,21 @@ all_random(a, b) {
     return zz / 2147483563, aa, bb;
 }
 
-all_reflect(value, lo, hi) {
-    rr = (value - lo) / (hi - lo);
-    qq = rr - 2 * floor(rr / 2);
-    return lo + (hi - lo) * (1 - abs(qq - 1));
-}
-
-// Broad time scales using u^8, without logarithms, exponentials or trig.
-// Explicit mass at one sample; every selected interval is an integer.
-all_interval(u, maximum) {
-    vv = max(0, (u - 0.08) / 0.92);
-    pp = vv * vv; pp = pp * pp; pp = pp * pp;
-    return max(1, floor(1 + (maximum - 1) * pp));
-}
-
+// Direct equal-width bins. No power law, random walk or favored endpoint.
+// Control amplitude resolution is 16 bits, including both 0 and 1.
 all_target(u, kind, limit) {
-    tt = 0;
-    if (kind == 0) {
-        if (u < 0.05) { tt = 0; }
-        else if (u < 0.10) { tt = 1; }
-        else if (u < 0.15) { tt = -1; }
-        else if (u < 0.70) { tt = 2 * (u - 0.15) / 0.55; }
-        else { tt = -4 + 8 * (u - 0.70) / 0.30; }
-        if (u > 0.995) { tt = 4; }
-    } else if (kind == 1) {
-        if (u < 0.08) { tt = 0; }
-        else if (u < 0.16) { tt = 1; }
-        else if (u < 0.85) {
-            vv = (u - 0.16) / 0.69;
-            pp = vv * vv; pp = pp * pp; pp = pp * pp;
-            tt = max(1, floor(limit * pp));
-        }
-        else { tt = min(limit, floor((limit + 1) * (u - 0.85) / 0.15)); }
-    } else {
-        if (u >= 0.5) { tt = 16 * (u - 0.5) - 4; }
-    }
+    tt = floor(u * 65536) / 65535;
+    if (kind == 1) { tt = floor(u * (limit + 1)); }
     return tt;
 }
 
-// One independent state machine per call site. No per-event allocation or JS Task.
-// kind 0: diagonal gain, kind 1: delay in samples, kind 2: cross-channel gain.
+all_interval(u, maximum) {
+    return 1 + floor(u * maximum);
+}
+
+// Independent call-site state. All six curve families have equal-width bins.
+// All event/transition durations use direct uniform sample bins, 1..12 seconds.
+// Repeated targets, durations, shapes and successive one-sample events are legal.
 all_motion(seed, tag, initial, kind) {
     History hSeed(-1);
     History hRate(0);
@@ -65,53 +41,41 @@ all_motion(seed, tag, initial, kind) {
     History hShape(0);
     History hLevels(2);
     History hCycles(1);
-    History hMaxWait(1);
-    History hMaxPeriod(1);
+    History hMaximum(1);
     History hLimit(1);
 
     ma = hA; mb = hB; mwait = hWait; mage = hAge; mperiod = hPeriod;
     mfrom = hFrom; mto = hTo; mvalue = hValue; mshape = hShape;
     mlevels = hLevels; mcycles = hCycles; mseed = hSeed;
-    mmaxwait = hMaxWait; mmaxperiod = hMaxPeriod; mlimit = hLimit;
-    mu = 0; mv = 0; mp = 0; mq = 0; mlower = -4; mupper = 4; mstep = 0;
+    mmaximum = hMaximum; mlimit = hLimit;
+    mu = 0; mp = 0; mq = 0;
     if (seed != mseed || samplerate != hRate) {
         ma = 1 + mod(floor(abs(seed) + tag * 104729), 2147483562);
         mb = 1 + mod(floor(abs(seed) * 5 + tag * 13007 + 12345), 2147483398);
         mseed = seed; mwait = 0; mvalue = initial; mfrom = initial; mto = initial;
         mage = 0; mperiod = 1;
         mlimit = min(524287, max(1, floor(samplerate * 2)));
-        mmaxwait = max(2, samplerate * 4);
-        mmaxperiod = max(2, samplerate * 12);
+        mmaximum = max(1, floor(samplerate * 12));
     }
     if (mwait <= 0) {
         mfrom = mvalue; mage = 0;
         mu, ma, mb = all_random(ma, mb);
-        mshape = min(5, floor(mu * 6));
+        mshape = floor(mu * 6);
         mu, ma, mb = all_random(ma, mb);
-        mwait = all_interval(mu, mmaxwait);
+        mwait = all_interval(mu, mmaximum);
         mu, ma, mb = all_random(ma, mb);
-        mperiod = all_interval(mu, mmaxperiod);
+        mperiod = all_interval(mu, mmaximum);
         mu, ma, mb = all_random(ma, mb);
         mto = all_target(mu, kind, mlimit);
-        mv, ma, mb = all_random(ma, mb);
-        if (mv < 0.5) {
-            mu, ma, mb = all_random(ma, mb);
-            mstep = mu * mu; mstep = mstep * mstep; mstep = mstep * mstep;
-            mstep = 0.000001 + 0.999999 * mstep;
-            if (kind == 1) { mlower = 0; mupper = mlimit; }
-            mu, ma, mb = all_random(ma, mb);
-            mto = all_reflect(mvalue + (2 * mu - 1) * (mupper - mlower) * mstep, mlower, mupper);
-        }
         mu, ma, mb = all_random(ma, mb);
         mlevels = 2 + floor(mu * 31);
+        mu, ma, mb = all_random(ma, mb);
         mcycles = 1 + floor(mu * 8);
-        // Sample-wise bursts are deliberately bounded in duration, not smoothed.
-        // Successive one-sample events remain possible outside a burst as well.
-        if (mshape == 5) { mwait = min(mwait, max(1, floor(samplerate * 0.08))); }
     }
     mage = min(mperiod, mage + 1);
     mp = mage / mperiod;
     mvalue = mto;
+    // 0: hard/hold; 1: linear; 2: smooth; 3: stairs; 4: triangle; 5: sample-wise.
     if (mshape == 1) { mvalue = mfrom + (mto - mfrom) * mp; }
     else if (mshape == 2) { mvalue = mfrom + (mto - mfrom) * mp * mp * (3 - 2 * mp); }
     else if (mshape == 3) {
@@ -124,150 +88,38 @@ all_motion(seed, tag, initial, kind) {
         if (mage >= mperiod) { mage = 0; }
     } else if (mshape == 5) {
         mu, ma, mb = all_random(ma, mb);
-        mvalue = 8 * mu - 4;
-        if (kind == 1) { mvalue = floor(mu * (mlimit + 1)); }
+        mvalue = all_target(mu, kind, mlimit);
     }
     hSeed = mseed; hA = ma; hB = mb; hWait = mwait - 1;
     hAge = mage; hPeriod = mperiod; hFrom = mfrom; hTo = mto;
     hValue = mvalue; hShape = mshape; hLevels = mlevels; hCycles = mcycles;
-    hMaxWait = mmaxwait; hMaxPeriod = mmaxperiod; hLimit = mlimit;
-    hRate = samplerate;
+    hMaximum = mmaximum; hLimit = mlimit; hRate = samplerate;
     return mvalue;
 }
 
-// A compact meta-controller: individual topologies AND simultaneous mixtures.
-all_scene(seed) {
-    History hSeed(-1);
-    History hRate(0);
-    History hA(1);
-    History hB(1);
-    History hWait(0);
-    History hAge(0);
-    History hPeriod(1);
-    History hShape(0);
-    History hFa(1); History hFb(0); History hFc(0);
-    History hTa(1); History hTb(0); History hTc(0);
-    History hVa(1); History hVb(0); History hVc(0);
-    History hStereo(0);
-    History hNonlinear(0);
-    History hPlace(0);
-    History hDrive(1);
-    History hLevels(16);
-    History hFeedback(0);
-    History hParallel(0.5);
-    History hMaxWait(1);
-
-    sa = hA; sb = hB; swait = hWait; sage = hAge; speriod = hPeriod; sshape = hShape;
-    sfa = hFa; sfb = hFb; sfc = hFc; sta = hTa; stb = hTb; stc = hTc;
-    sva = hVa; svb = hVb; svc = hVc; sseed = hSeed; smaxwait = hMaxWait;
-    sstereo = hStereo; snonlinear = hNonlinear; splace = hPlace;
-    sdrive = hDrive; slevels = hLevels; sfeedback = hFeedback; sparallel = hParallel;
-    su = 0; sv = 0; sz = 0; sp = 0;
-    if (seed != sseed || samplerate != hRate) {
-        sa = 1 + mod(floor(abs(seed) + 982451653), 2147483562);
-        sb = 1 + mod(floor(abs(seed) * 7 + 961748941), 2147483398);
-        sseed = seed; swait = 0;
-        smaxwait = max(2, samplerate * 6);
-    }
-    if (swait <= 0) {
-        sfa = sva; sfb = svb; sfc = svc; sage = 0;
-        su, sa, sb = all_random(sa, sb);
-        swait = all_interval(su, smaxwait);
-        su, sa, sb = all_random(sa, sb);
-        sshape = min(2, floor(su * 3));
-        su, sa, sb = all_random(sa, sb);
-        speriod = all_interval(su, max(2, samplerate));
-        su, sa, sb = all_random(sa, sb);
-        sta = 0; stb = 0; stc = 0;
-        if (su < 0.2) { sta = 1; }
-        else if (su < 0.4) { stb = 1; }
-        else if (su < 0.6) { stc = 1; }
-        else {
-            su, sa, sb = all_random(sa, sb);
-            sv, sa, sb = all_random(sa, sb);
-            sz, sa, sb = all_random(sa, sb);
-            sta = su / (su + sv + sz); stb = sv / (su + sv + sz); stc = sz / (su + sv + sz);
-        }
-        su, sa, sb = all_random(sa, sb);
-        sstereo = 0;
-        if (su >= 0.6) { sstereo = 1; }
-        if (su >= 0.8) { sstereo = 2; }
-        su, sa, sb = all_random(sa, sb);
-        snonlinear = 0;
-        if (su >= 0.5) { snonlinear = 1 + min(3, floor((su - 0.5) * 8)); }
-        su, sa, sb = all_random(sa, sb);
-        splace = min(2, floor(su * 3));
-        su, sa, sb = all_random(sa, sb);
-        sdrive = 0.25 + 7.75 * su * su * su;
-        su, sa, sb = all_random(sa, sb);
-        slevels = 2 + floor(126 * su);
-        su, sa, sb = all_random(sa, sb);
-        sfeedback = 0;
-        if (su >= 0.6) { sfeedback = 0.9 * (5 * (su - 0.6) - 1); }
-        su, sa, sb = all_random(sa, sb);
-        sparallel = su;
-    }
-    sage = min(speriod, sage + 1);
-    sp = sage / speriod;
-    if (sshape == 0) { sp = 1; }
-    else if (sshape == 2) { sp = sp * sp * (3 - 2 * sp); }
-    sva = sfa + (sta - sfa) * sp;
-    svb = sfb + (stb - sfb) * sp;
-    svc = sfc + (stc - sfc) * sp;
-    hSeed = sseed; hA = sa; hB = sb; hWait = swait - 1;
-    hAge = sage; hPeriod = speriod; hShape = sshape;
-    hFa = sfa; hFb = sfb; hFc = sfc; hTa = sta; hTb = stb; hTc = stc;
-    hVa = sva; hVb = svb; hVc = svc;
-    hStereo = sstereo; hNonlinear = snonlinear; hPlace = splace;
-    hDrive = sdrive; hLevels = slevels; hFeedback = sfeedback; hParallel = sparallel; hMaxWait = smaxwait;
-    hRate = samplerate;
-    return sva, svb, svc, sstereo, snonlinear, splace, sdrive, slevels, sfeedback, sparallel;
-}
-
-all_shape(value, kind, drive, levels) {
-    yy = value;
-    xx = value * drive;
-    if (kind == 1) { yy = clamp(xx, -1, 1); }
-    else if (kind == 2) {
-        xx = xx + 1;
-        xx = xx - 4 * floor(xx / 4);
-        yy = 1 - abs(xx - 2);
-    } else if (kind == 3) { yy = floor(clamp(xx, -1, 1) * levels + 0.5) / levels; }
-    else if (kind == 4) { yy = xx / (1 + abs(xx)); }
-    return yy;
-}
-
+// One input-only stereo ring, 8 MiB at double precision. No processed audio returns.
 Data allRaw(524288, 2);
-Data allPre(524288, 2);
 History hWrite(0);
 History hAvailable(0);
-History hFeedbackL(0);
-History hFeedbackR(0);
+History hRate(0);
 
-// Guards reject nonfinite input before it can enter either history buffer.
+// Invalid/absurd inputs are discarded before storage, not waveshaped or limited.
 xL = 0; xR = 0; wet = 0; seed = 13579;
 if (abs(in1) <= 64) { xL = in1; }
 if (abs(in2) <= 64) { xR = in2; }
 if (in3 >= 0 && in3 <= 1) { wet = in3; }
 if (in4 >= 1 && in4 <= 2147483000) { seed = floor(in4); }
 
-aLL = all_motion(seed, 1, 1, 0);
-aRR = all_motion(seed, 2, 1, 0);
-aLR = all_motion(seed, 3, 0, 2);
-aRL = all_motion(seed, 4, 0, 2);
+gainL = clamp(all_motion(seed, 1, 1, 0), 0, 1);
+gainR = clamp(all_motion(seed, 2, 1, 0), 0, 1);
+panL = clamp(all_motion(seed, 3, 0, 0), 0, 1);
+panR = clamp(all_motion(seed, 4, 1, 0), 0, 1);
 delayL = all_motion(seed, 5, 0, 1);
 delayR = all_motion(seed, 6, 0, 1);
-wa, wb, wc, stereo, nonlinear, place, drive, levels, feedback, parallelMix = all_scene(seed);
 
-if (stereo == 1) { aRR = aLL; aRL = aLR; }
-else if (stereo == 2) { aRR = 1 - aLL; aRL = -aLR; }
-normL = max(1, (abs(aLL) + abs(aLR)) * 0.25);
-normR = max(1, (abs(aRR) + abs(aRL)) * 0.25);
-aLL = aLL / normL; aLR = aLR / normL;
-aRR = aRR / normR; aRL = aRL / normR;
-
-writePos = hWrite;
-available = hAvailable;
+writePos = hWrite; available = hAvailable;
+// Retire history on a rate change without clearing/reallocating in the audio loop.
+if (samplerate != hRate) { writePos = 0; available = 0; }
 delayLimit = min(524287, max(1, floor(samplerate * 2)));
 dL = clamp(floor(delayL + 0.5), 0, delayLimit);
 dR = clamp(floor(delayR + 0.5), 0, delayLimit);
@@ -275,49 +127,32 @@ readL = writePos - dL; readR = writePos - dR;
 if (readL < 0) { readL = readL + 524288; }
 if (readR < 0) { readR = readR + 524288; }
 
-// Feedback is input-derived and bounded INSIDE the memory path only.
-// There is no mandatory limiter, interpolation or de-clicker on the wet output.
-rawL = xL + feedback * hFeedbackL;
-rawR = xR + feedback * hFeedbackR;
-preL = aLL * rawL + aLR * rawR;
-preR = aRL * rawL + aRR * rawR;
-if (place > 0) {
-    preL = all_shape(preL, nonlinear, drive, levels);
-    preR = all_shape(preR, nonlinear, drive, levels);
-}
-
-tapRawL = 0; tapRawR = 0; tapPreL = 0; tapPreR = 0;
-if (dL == 0) { tapRawL = rawL; tapPreL = preL; }
+// Each output reads both input channels at its own time, then distributes them.
+// Thus a left-only source can reach either output at independent delay times.
+tapLL = 0; tapLR = 0; tapRL = 0; tapRR = 0;
+if (dL == 0) { tapLL = xL; tapLR = xR; }
 else if (dL <= available) {
-    tapRawL = peek(allRaw, readL, 0);
-    tapPreL = peek(allPre, readL, 0);
+    tapLL = peek(allRaw, readL, 0);
+    tapLR = peek(allRaw, readL, 1);
 }
-if (dR == 0) { tapRawR = rawR; tapPreR = preR; }
+if (dR == 0) { tapRL = xL; tapRR = xR; }
 else if (dR <= available) {
-    tapRawR = peek(allRaw, readR, 1);
-    tapPreR = peek(allPre, readR, 1);
+    tapRL = peek(allRaw, readR, 0);
+    tapRR = peek(allRaw, readR, 1);
 }
 
-// A: delay -> matrix; B: matrix -> delay; C: parallel delay + matrix.
-pathAL = aLL * tapRawL + aLR * tapRawR;
-pathAR = aRL * tapRawL + aRR * tapRawR;
-pathCL = parallelMix * tapRawL + (1 - parallelMix) * preL;
-pathCR = parallelMix * tapRawR + (1 - parallelMix) * preR;
-wetL = wa * pathAL + wb * tapPreL + wc * pathCL;
-wetR = wa * pathAR + wb * tapPreR + wc * pathCR;
-if (place != 1) {
-    wetL = all_shape(wetL, nonlinear, drive, levels);
-    wetR = all_shape(wetR, nonlinear, drive, levels);
-}
+// Nonnegative row sums <= 1: no internal amplification, polarity flip or limiter.
+aLL = gainL * (1 - panL); aLR = gainL * panL;
+aRL = gainR * (1 - panR); aRR = gainR * panR;
+wetL = aLL * tapLL + aLR * tapLR;
+wetR = aRL * tapRL + aRR * tapRR;
 
+// Convex Dry/Wet also preserves the input-history peak bound.
 out1 = (1 - wet) * xL + wet * wetL;
 out2 = (1 - wet) * xR + wet * wetR;
-poke(allRaw, rawL, writePos, 0);
-poke(allRaw, rawR, writePos, 1);
-poke(allPre, preL, writePos, 0);
-poke(allPre, preR, writePos, 1);
+poke(allRaw, xL, writePos, 0);
+poke(allRaw, xR, writePos, 1);
 hWrite = writePos + 1;
 if (writePos >= 524287) { hWrite = 0; }
 hAvailable = min(524287, available + 1);
-hFeedbackL = clamp(wetL, -1, 1);
-hFeedbackR = clamp(wetR, -1, 1);
+hRate = samplerate;

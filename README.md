@@ -1,14 +1,16 @@
-# All — 1.0.0
+# All — 2.0.0
 
 **[All direkt herunterladen (.amxd)](https://github.com/buennobuennobuenno-cell/my-m4l-plugin/raw/refs/heads/main/All.amxd)**
 
 Eigenständiger Stereo-Chaoseffekt mit **einem einzigen Dry/Wet-Regler**.
 Keine Mappings oder zusätzlichen Stock-Effekte nötig. Die einzelne Datei in
-Ableton Live mit Max for Live als neue Instanz laden. Startwert: **100 % Wet**.
+Ableton Live mit Max for Live als **neue Instanz** laden. Startwert: **10 % Wet**.
 
-Samplegetaktete Gain- und ganzzahlige Delayverläufe, Stereo-Kreuzmischung,
-serielle/parallele Kombinationen, optionale Nichtlinearitäten und begrenzte
-Rückkopplung. Harte, weiche, gestufte und sampleweise Veränderungen sind erlaubt.
+Samplegetaktete Abschwächung und ganzzahlige Delayverläufe mit Stereo-Kreuzmischung.
+**Keine zusätzliche Verstärkung, Rückkopplung oder Verzerrungskennlinie.**
+Harte, weiche, gestufte und sampleweise Veränderungen sind erlaubt.
+Keine Bevorzugung kleiner Zufallsziele oder Unterdrückung von Wiederholungen.
+Ein Stereo-Eingangspuffer statt zweier Puffer halbiert den Audio-Speicherbedarf.
 Ein kompakter nativer `gen~`-Kern ersetzt die externe Parameterfernsteuerung.
 
 [Bedienung, Architektur, Tests und Grenzen](all/README.md).

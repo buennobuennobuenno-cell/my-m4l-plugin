@@ -49,16 +49,21 @@ class AllPackageTests(unittest.TestCase):
         saved = parameters[0]["saved_attribute_attributes"]["valueof"]
         self.assertEqual(saved["parameter_longname"], "Dry/Wet")
         self.assertEqual((saved["parameter_mmin"], saved["parameter_mmax"]), (0, 100))
-        self.assertEqual(saved["parameter_initial"], [100])
+        self.assertEqual(saved["parameter_initial"], [10])
         self.assertEqual(self.patch["parameters"]["mix"], ["Dry/Wet", "Dry/Wet", 0])
         self.assertNotIn("Param ", self.code)
 
     def test_control_is_inside_the_compact_device_and_cannot_be_covered(self):
-        self.assertEqual(self.patch["devicewidth"], 110)
+        self.assertEqual(self.patch["devicewidth"], 80)
         self.assertEqual(self.patch["openinpresentation"], 1)
         x, y, w, h = self.boxes["mix"]["presentation_rect"]
         self.assertGreaterEqual(x, 0); self.assertGreaterEqual(y, 0)
-        self.assertLessEqual(x + w, 110); self.assertLessEqual(y + h, 169)
+        self.assertLessEqual(x + w, 80); self.assertLessEqual(y + h, 169)
+        self.assertEqual([b["id"] for b in self.boxes.values() if b.get("presentation")], ["mix"])
+        self.assertNotIn("fontname", self.boxes["mix"])
+        self.assertNotIn("fontsize", self.boxes["mix"])
+        self.assertEqual(len(set(self.patch["bgcolor"][:3])), 1)
+        self.assertGreater(self.patch["bgcolor"][0], 0.5)
         for b in self.boxes.values():
             if b.get("presentation") and b["id"] != "mix":
                 xx, yy, ww, hh = b["presentation_rect"]
@@ -100,13 +105,16 @@ class AllPackageTests(unittest.TestCase):
 
     def test_no_mapping_remote_custom_external_or_audio_rate_javascript(self):
         texts = [b.get("text", "") for b in self.boxes.values()]
-        self.assertEqual([s for s in texts if "~" in s], ["plugin~", "plugout~", "sig~ 1.", "sig~ 13579.", "gen~"])
+        self.assertEqual([s for s in texts if "~" in s], ["plugin~", "plugout~", "sig~ 0.1", "sig~ 13579.", "gen~"])
         for unwanted in ("live.remote", "live.observer", "live.path", "snapshot", "qmetro", "node.script", "js~"):
             self.assertNotIn(unwanted, "\n".join(texts))
 
     def test_buffer_bounds_and_sample_address_resolution_are_explicit(self):
         self.assertIn("Data allRaw(524288, 2);", self.code)
-        self.assertIn("Data allPre(524288, 2);", self.code)
+        self.assertEqual(self.code.count("Data "), 1)
+        self.assertNotIn("allPre", self.code)
+        for unwanted in ("hFeedback", "all_shape", "all_scene", "all_reflect"):
+            self.assertNotIn(unwanted, self.code)
         self.assertIn("floor(delayL + 0.5)", self.code)
         self.assertIn("floor(delayR + 0.5)", self.code)
         self.assertIn("else if (dL <= available)", self.code)

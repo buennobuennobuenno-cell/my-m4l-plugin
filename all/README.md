@@ -1,155 +1,139 @@
-# All — 1.0.0
+# All 2.0.0
 
-**[All direkt herunterladen (.amxd)](https://github.com/buennobuennobuenno-cell/my-m4l-plugin/raw/refs/heads/main/All.amxd)**
+Eigenständiger Max-for-Live-Audioeffekt mit genau einem Dry/Wet-Regler.
+Die einzelne Datei `All.amxd` enthält alle Laufzeitressourcen.
+In Live als **neue Geräteinstanz** laden; eine bestehende All-1.0-Instanz
+wird dadurch nicht ersetzt. Für Live mit Max for Live und Max 8.5+ vorgesehen.
 
-Ein eigenständiger Stereo-Audioeffekt für Ableton Live mit Max for Live.
-Einziger Geräteparameter: **Dry/Wet**. Keine Mappings, Zielgeräte oder zusätzlichen
-Stock-Effekte nötig. Startet automatisch mit aktiver Audioverarbeitung, unabhängig
-von Transport, Tempo oder Eingangstriggern. Vorgesehene Basis: Live 11/12 und
-Max 8.5+, einschließlich nativem Apple Silicon; tatsächlicher Hosttest steht aus.
+## Bedienung und Oberfläche
 
-Die einzelne Datei als **neue Instanz** auf die Audiospur bzw. hinter ein
-Instrument ziehen. **0 %** gibt den Eingang durch, **100 %** den bearbeiteten
-Ausgang. Der Startwert ist **100 %**. Für eine parallele Rack-Chain kann All
-vollständig wet bleiben und der Chain-Pegel den Anteil bestimmen, wie vom Nutzer
-vorgesehen. Der einzige Regler ist in Live automatisierbar und wird im Set
-gespeichert. Die Zufallszustände werden beim Laden neu initialisiert.
+Dry/Wet: 0–100 %, Startwert **10 %**, im Live-Set speicherbar und automatisierbar.
+0 % gibt gültiges Eingangsaudio unverändert aus. 100 % gibt nur den bearbeiteten
+Anteil aus. Die Zufallssteuerung und Eingangshistorie laufen auch bei 0 % weiter.
 
-Die kompakte Oberfläche ist 110 Pixel breit. Das Gerät enthält den Audiokern
-und das einmalig ausgeführte Startskript. Es muss keine ZIP entpackt werden.
+80 Pixel Gerätebreite, ein normal großes natives `live.dial`, ohne zusätzlichen
+Titel, Anzeigen, Mapping-Buttons oder Animationen. Neutraler mittelgrauer
+Hintergrund (#8D8D8D, optisch an der Align-Delay-Referenz orientiert), dunkler
+Regler und hellblauer/türkiser Wertbogen. Keine eigenen Schriftvorgaben.
+Lives Geräte-Kopfzeile und Auswahlmarkierung bleiben Sache des Hosts.
+Die exakte Darstellung ist hier nicht nativ in Live überprüft.
 
-## Festgelegtes Verhalten dieser ersten Version
+## Audiokern
 
-- Sechs unabhängige, samplegetaktete Zustandsmaschinen steuern vier
-  Stereo-Mischkoeffizienten und zwei Delayzeiten. Eine weitere Zustandsmaschine
-  steuert die Kombinationen. Keine JavaScript-Tasks oder Live-API-Abfragen laufen
-  im Betrieb; JavaScript gibt beim Laden genau einen neuen Seed aus.
-- Gain-/Delay-Zustände: halten/hart springen, linear, weich gekrümmt, gestuft,
-  Dreiecksbewegungen und sampleweise Zufallsbursts. Neue Ziele können laufende
-  Bewegungen unterbrechen. Dauer, Abstand und Ziel sind getrennte Ziehungen.
-- Die Auswahl enthält explizit Ein-Sample-Intervalle und breite Zeitskalen über
-  eine gemischte Potenzverteilung. Es gibt weder einen festen Modulationstakt noch
-  vorgeschriebene Glättung. Diese neue Verteilung ist nicht die alte V3.1-Verteilung.
-- Gain-Ziele einschließlich 0, +1 und −1; alle vier Koeffizienten können zwischen
-  −4 und +4 liegen. Die Summe ihrer Absolutwerte wird je Ausgangszeile auf 4
-  begrenzt. Das erlaubt Polaritätswechsel, Verstärkung, Stummschaltung und
-  Übertragung jedes Eingangskanals auf beide Ausgangskanäle.
-- Linke/rechte Verläufe sind wahlweise unabhängig, gemeinsam oder gegenläufig
-  gekoppelt. Die unbenutzten unabhängigen Verläufe laufen intern weiter.
-- Ganzzahlige Delayziele von **0 bis 2 Sekunden bei 8–192 kHz**; kleinste Änderung
-  **ein Sample**. Es gibt keine Fractional-Delay-Interpolation. Bei höheren Raten
-  begrenzt zusätzlich die feste Pufferlänge auf 524.287 Samples. Noch nicht
-  vorhandene Eingangshistorie ergibt null, nicht eine verkürzte Verzögerung.
-- Beide seriellen Anordnungen **Delay → Matrix** und **Matrix → Delay** sowie
-  **paralleles Delay + Matrix**. Sie können einzeln oder gleichzeitig beitragen.
-  Umschaltungen dürfen hart oder mit linearem/weichem Verlauf stattfinden.
-- Optionale, automatisch gewählte Kennlinien: unverändert, Clipping, Faltung,
-  Amplitudenquantisierung und rationale weiche Sättigung. Platzierung im
-  vorverarbeiteten Speicherzweig, hinter der Summe oder an beiden Stellen.
-- Zeitweise positive/negative Rückkopplung. Ihr gespeicherter Rücklauf ist intern
-  auf ±1 begrenzt. Es gibt keinen globalen Ausgangslimiter oder De-Clicker.
-  Eingänge außerhalb ±64 sowie nicht endliche Eingangswerte werden vor dem
-  Speichern verworfen. Diese Grenzen sichern eine endliche Berechnung.
-- Keine autonomen Audiotöne oder additive Rauschquelle. Bei Stille und leeren
-  Speichern bleibt der Ausgang exakt still. Vorhandenes Material kann durch
-  die Rückkopplung nachlaufen; sampleweise Modulation darf selbst rau klingen.
+Ein eingebettetes `gen~` und **ein eingangsgespeister Stereo-Ringpuffer**.
+Ein Delay-Puffer ist nur der Kurzzeitspeicher für die Verzögerung. Eine
+Ausleseposition bedeutet „so viele Samples hinter dem aktuellen Eingang“.
+Das eingehende Audio läuft laufend weiter; es wird keine Audiodatei abgespielt
+und kein zusätzlicher Ton erzeugt.
 
-## Was gegenüber dem theoretischen Gespräch präzisiert wurde
+Je Ausgang werden beide Eingangskanäle an einer eigenen ganzzahligen
+Zeitposition gelesen. Eine nichtnegative Stereo-Matrix verteilt sie anschließend.
+Damit kann auch ein ausschließlich links vorhandener Eingang rechts erscheinen,
+mit einer anderen Verzögerung als am linken Ausgang. Separate Abschwächung links
+und rechts; die Summe aller Audio-Gewichte ist je Ausgang höchstens 1.
 
-Kurze zufällige Gainfolgen können für einen konkreten Eingang die Ausgabe
-anderer Effekte annähern. Das setzt verfügbare, passende Eingangswerte und
-erreichbare Gains voraus. Ein fester Multiweg-Kern ersetzt hierfür getrennte
-Stock-Effekte und laufendes Umverkabeln. Gezielte Nichtlinearitäten machen einige
-dieser Verläufe außerdem häufiger erreichbar.
+Dry/Wet ist ebenfalls eine nichtnegative Mischung mit Gewichtssumme 1.
+Daher überschreitet der Ausgang rechnerisch nicht den größten Betrag des
+jeweils verwendeten Eingangsmaterials, bis auf Gleitkomma-Rundung.
+Ein früher lautes Sample darf lauter als der aktuelle Eingang sein.
+Diese Grenze gilt innerhalb des Geräts; ein extern parallel addiertes
+Audio-Rack kann den Gesamtpegel trotzdem erhöhen. Bereits übersteuerter
+Eingang wird durch diese Konstruktion nicht automatisch repariert.
 
-**All ist kein bewiesener Generator sämtlicher denkbarer Audioverläufe und kein
-mathematisch nachgewiesenes Bernoulli-System.** Die kombinierte ecuyer1988-Folge
-hat endlichen Zustand; auch die Koeffizienten, Speicher und Zeitskalen sind
-begrenzt. Es wird weder vollständige Unterstützung aller möglichen kurzen
-Bitfolgen noch physikalischer Zufall oder absolute Unvorhersehbarkeit behauptet.
-Wahrscheinlichkeitsverteilungen und Abhängigkeiten gehören zum Klangentwurf.
+Verzögerung: 0–2 Sekunden bei 8–192 kHz; kleinste Stufe **ein Sample**,
+keine Fractional-Delay-Interpolation. Höhere Abtastraten bleiben adresssicher,
+die Historie ist dann zusätzlich auf 524.287 Samples begrenzt.
+Noch nicht vorhandene Historie ergibt Stille. Nach Ende des Eingangs wird
+spätestens nach Ablauf der maximal zugänglichen Verzögerung auch der Wet-Pfad
+still. Ein Abtastratenwechsel verwirft die alte zugängliche Historie, ohne
+den ganzen Speicher im Audio-Thread zu löschen oder neu anzulegen.
 
-Ein geringer Wet-Anteil fügt einen weiteren Signalbeitrag hinzu, beseitigt aber
-keine Bereichsgrenzen. Exakte Treffer einer beliebig vorgegebenen kontinuierlichen
-Wertefolge sind kein sinnvolles Erfolgsversprechen. Diese Version ist eine
-konkrete, begrenzte erste Umsetzung des besprochenen Möglichkeitsraums.
+Kein Ausgangsaudio wird in den Speicher zurückgeführt.
+**Keine Rückkopplung, Verstärkung über 1, negative Audio-Gains, Sättigung,
+Clipping-Kennlinie, Wavefolding, Amplitudenquantisierung, FFT, Oversampling,
+additive Rauschquelle oder Audiooszillator.** Die Kontrollwerte haben ein
+endliches digitales Raster; das ist keine Quantisierung des Audiosignals.
 
-## DSP und Speicher
+Nicht endliche Eingangswerte und Eingangsbeträge über 64 werden vor dem
+Speichern verworfen. Es gibt keinen Ausgangslimiter oder Audio-De-Clicker.
+Harte Modulations-/Delay-Sprünge dürfen klicken oder rauschähnlich klingen;
+schnelle Modulation kann neue hörbare Frequenzanteile erzeugen.
 
-Ein eingebettetes `gen~`, zwei Stereo-Ringpuffer, höchstens vier gepufferte
-Lesezugriffe und vier Schreibzugriffe pro Sample. Die Speicherbereiche benötigen
-zusammen **16 MiB**, unabhängig von Laufzeit und Zahl der Zufallsereignisse.
-Kein FFT, Oversampling, eigener nativer External, Audio-Thread-JavaScript,
-periodisches GUI-Zeichnen oder Laufzeit-Anlegen von Geräten/Puffern. Der
-GenExpr-Kern verwendet keine Sinus-, Exponential- oder Logarithmusfunktionen.
+## Zufall: Wiederholungen erlaubt, keine Bevorzugung kleiner Änderungen
 
-Die Berechnung läuft auch bei 0 % Wet weiter, damit das Zufallssystem weiterläuft.
-Der normale Live-Geräteschalter bleibt der Host-Bypass. Teilbare Rechenwege werden
-gemeinsam verwendet; der Effekt besteht nicht aus versteckten Auto-Pan-/Align-
-Delay-Instanzen. Kleinere Datei oder weniger Objekte beweisen keine CPU-Ersparnis.
+Sechs voneinander getrennte Steuerzustände für zwei Abschwächungen, zwei
+Stereo-Mischverhältnisse und zwei Verzögerungen. Keine Audioanalyse, Trigger,
+Tempo-Synchronisation, vorbereiteten Szenenfolgen oder Vermeidung von Wiederholungen.
 
-**Die vom Nutzer genannten etwa 6 % auf einem MacBook Air M1 wurden hier nicht
-gemessen oder als eingehalten bestätigt.** Der Linux-Arithmetik-Benchmark ist
-kein Test von Gen-JIT, Ableton, Audiotreiber, M1, Puffergröße oder Lives DSP-Anzeige.
+- Gain- und Mischziele: direkte gleich breite Auswahlintervalle über 65.536
+  Kontrollwerte einschließlich 0 und 1.
+- Delayziele: direkte gleich breite Auswahlintervalle über alle erlaubten
+  ganzzahligen Samplepositionen.
+- Ereignisabstände und Übergangsdauern: getrennte Ziehungen aus direkten
+  gleich breiten Sampleintervallen von einem Sample bis zwölf Sekunden.
+- Kurvenfamilien: halten/hart, linear, weich gekrümmt, gestuft, Dreiecksbewegung
+  und sampleweise Zufallswerte; jede Familie hat ein gleich breites Auswahlintervall.
+  Während der sampleweisen Familie wird bei jedem Sample ein neues Ziel gezogen.
+- Keine Potenzgewichtung zugunsten kleiner Werte, kein bevorzugter Random Walk,
+  keine Sonderwahrscheinlichkeit für Null/Identität, keine verkürzten Noise-Bursts.
+- Identische Ziele, Zeiten und Kurven dürfen beliebig oft erneut gewählt werden.
+  Es gibt keine Bedingung „muss sich ändern“. Neue Ereignisse dürfen auch laufende
+  Übergänge unterbrechen. Links/rechts laufen unabhängig; ähnliche oder
+  gegenläufige Abschnitte werden nicht als vorgeschriebene Szene erzeugt.
 
-## Prüfen und Bauen
+Die diskreten Bins sind gleich breit. Wegen des endlichen PRNG-Rasters ist dies
+keine Behauptung exakt identischer Wahrscheinlichkeiten aller Bitmuster.
+Interpolierte Kurvenwerte und komplette Zeitverläufe sind nicht gleichverteilt;
+eine Gleichverteilung über sämtliche denkbaren Verläufe existiert hier nicht.
 
-Benötigt: Node.js 20+, Python 3.10+, C++17-Compiler (`g++` oder `CXX`). Keine
-zusätzlichen Projektpakete, Ports, Dienste oder Zugangsdaten.
+Die kombinierte ecuyer1988-Folge ist **Pseudozufall mit endlichem Zustand**.
+Beim Laden kommt einmal ein neuer Seed aus Zeitstempel und JavaScript-Zufall.
+Gleicher Test-Seed bedeutet reproduzierbaren Ablauf. Physikalischer Zufall,
+kryptografische Sicherheit, absolute Unvorhersehbarkeit, ein Bernoulli-System
+oder jede denkbare endliche Folge werden nicht zugesichert. JavaScript läuft
+nicht im Audiotakt.
+
+## Gegenüber All 1.0
+
+Entfernt: zweiter Stereo-Puffer, drei gemischte Effektanordnungen, zusätzliche
+Kennlinien, Drive, Rückkopplung, Audio-Polaritätswechsel und bis zu vierfache Gains.
+Die bisherige Tabelle „numerisch endlich“ war keine ausreichende Pegelprüfung.
+
+Der Audio-Puffer benötigt jetzt **8 statt 16 MiB** bei gleicher fester Länge.
+Höchstens vier gepufferte Lese- und zwei Schreibzugriffe pro Stereo-Sample.
+Keine laufenden Live-API-Abfragen, GUI-Zeichenschleifen oder neuen Pufferobjekte.
+
+## Bauen und Prüfen
+
+Node.js 20+, Python 3.10+, C++17-Compiler; keine zusätzlichen Projektpakete.
 
 ```sh
 python3 all/test.py
 python3 all/test.py --sanitize
 python3 all/test.py --benchmark
 python3 all/build.py
+npm run check
 ```
 
-Der gemeinsame Projektlauf `npm run check` prüft und baut alle drei Geräte.
-CI führt zusätzlich die Address-/UndefinedBehavior-Sanitizer-Prüfung für All aus.
-Buildausgaben: `all/dist/All.amxd`, `All.maxpat`, `all_seed.js`. Die GenExpr-Quelle
-ist im Patch eingebettet. Die Datei `All.amxd` im Repository-Stamm ist eine nach
-den Prüfungen bewusst aktualisierte Download-Kopie; normale Builds ersetzen sie
-nicht. `all/reports/` ist ein ignoriertes Ausgabeverzeichnis.
+Buildausgaben: `all/dist/All.amxd`, `All.maxpat`, `all_seed.js`.
+Die Root-Datei `All.amxd` wird nach erfolgreicher Prüfung separat aktualisiert.
+`all/reports/` enthält ignorierte generierte Modell- und Messdateien.
 
-`tools/native_model.py` übersetzt die **tatsächlich eingebetteten GenExpr-
-Anweisungen** in einen eingeschränkten C++-Prüfhost, einschließlich getrennten
-History-Zuständen je Aufrufstelle und geprüften Data-Adressen. Das ist kein
-separat neu geschriebenes DSP-Modell, aber **auch nicht Cycling '74s Gen-Compiler**.
-Native Gen-Sprachakzeptanz, Optimierungen und Hostverhalten werden dadurch nicht
-ausgeführt. Der Adapter und seine Einschränkungen sind mit veröffentlicht.
+Die Pakettests prüfen Archiv, eingebettete Ressourcen, Verbindungen,
+Dry/Wet-Start/Restore und die einzige sichtbare Bedienfläche.
+Die Signaltests prüfen insbesondere die Eingangshistorien-Pegelgrenze,
+nichtnegative Stereo-Mischung, Links-Rechts-Übertragung, unabhängige Delays
+derselben Quelle, ganze Samplepositionen, Ring-Wrap, endliche Nachläufe,
+keine Wiederholungsunterdrückung, Verteilungsplausibilität, Stille, ungültige
+Werte, Re-Seeding und Abtastratenwechsel.
 
-Pakettests prüfen Archiv, Ressourcen, alle Verbindungen, Start-/Parameterpfade
-und den einzigen sichtbaren Regler. Die ausführbaren Signaltests prüfen unter
-anderem exakte Impulspositionen, Ring-Wrap, alle drei Anordnungen, gleichzeitige
-Mischung, Stereo-Kreuzverteilung, harte Gains, Kennlinien, Stille, Feedbackgrenzen,
-Dry/Wet, ungültige Zahlen, Re-Seeding und wechselnde Sample-Raten. Ein 62,5-Sekunden-
-Render durchläuft alle Kurven- und Kennlinienfamilien; das ist ein Offline-Modelllauf.
-Adress-/UB-Sanitizer gelten für diesen C++-Prüfhost, nicht für Max selbst.
+`tools/native_model.py` übersetzt die tatsächlich ausgelieferten GenExpr-
+Anweisungen in einen eingeschränkten C++-Prüfhost mit geprüften Data-Adressen.
+Das ist **nicht Cycling '74s Gen-Compiler**. Ergebnisse und ausdrücklich
+ungetestete Hosteigenschaften stehen in [validation/results.json](validation/results.json).
 
-Prüfstand 22. Oktober 2026: **136 unterschiedliche Prüfungen bestanden**,
-davon 27 für All (10 Paket-/Startskripttests und 17 Signal-/Rechentests).
-Die 17 Rechentests wurden zusätzlich mit Address- und UndefinedBehavior-
-Sanitizern erfolgreich ausgeführt. Beide Durchläufe erzeugten im 62,5-Sekunden-
-Modellrender denselben Spitzenwert von ungefähr 4,87123. Paket und eingebettete
-Quellen stimmen bytegenau überein. Ergebnisse, Dateihash und ausdrücklich
-ungetestete Hosteigenschaften: [validation/results.json](validation/results.json).
-
-Im lokalen x86-64-C++-Modell benötigten 20 Sekunden Audio bei 48 kHz ungefähr
-0,415 Sekunden Rechenzeit im normalen Zufallsbetrieb und 0,930 Sekunden bei
-erzwungenen sampleweisen Verläufen mit gleichzeitig aktiven Wegen. Das sind
-Momentaufnahmen dieses Prüfprogramms; sie werden nicht als Ableton-CPU-Prozente
-oder M1-Prognose ausgegeben.
-
-## Noch im echten Host erforderlich
-
-Hier gibt es weder Max noch Ableton Live. Daher sind tatsächliches Laden und
-Gen-Kompilieren, Darstellung, Audioausführung, Automations-/Set-Speicherung,
-Bypass-/DSP-Neustarts und Absturzverhalten **noch nicht nativ getestet**.
-
-In Live 11/12 mit Max 8.5+ prüfen: neue Instanz ohne Max-Fehler, genau ein sichtbarer
-Dry/Wet-Regler, 0 % unverändert und 100 % bearbeitet, Mono-/Stereoquellen, schnelle
-Automation, Set speichern/neu öffnen, Duplikate und Löschvorgänge sowie DSP- und
-Sample-Rate-Wechsel. Auf dem M1 44,1/48/96 kHz mit üblichen Puffergrößen messen,
-auch mit geschlossener Geräteansicht und mehreren Instanzen. CPU-Vergleich mit
-dem bisherigen vollständigen Rack unter denselben Bedingungen durchführen.
-Absturzfreiheit oder maximal 6 % CPU lassen sich ohne diese Messungen nicht zusichern.
+Hier stehen Max und Ableton nicht zur Verfügung. Natives Gen-Kompilieren,
+Laden der AMXD, Darstellung, Set-Wiederherstellung, Audio-Host-Lebenszyklus und
+M1-DSP-Verbrauch müssen in Live überprüft werden. Die bisherigen etwa 6 %
+werden nicht als gemessen oder garantiert ausgegeben. Modell-Benchmarks sind
+keine Ableton-CPU-Anzeige und kein Nachweis von Absturzfreiheit.

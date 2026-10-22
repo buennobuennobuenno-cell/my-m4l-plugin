@@ -1,64 +1,85 @@
 {
   "date": "2026-10-22",
-  "version": "1.0.0",
+  "version": "2.0.0",
   "artifact": {
     "filename": "All.amxd",
-    "bytes": 27046,
-    "sha256": "281d41595c9a77c185163d2e907c31ebd0170aff508f22c9daeb82e875c2b270"
+    "bytes": 20395,
+    "sha256": "fc49a9c75f64ad9bec20e2c96a13c78b8987f80d33b75fc967ab7cee8373d863"
   },
-  "source_sha256": "7b09782067d1a7a52308dc8a1b5f49236f74df243337478ae63ff9bc799ae244",
+  "source_sha256": "a8aede3efee2d1d3d4ec89332f377a7d2b81f800c3deb2e3c0efc575d96831fe",
   "checks": {
     "all_package_python_passed": 10,
-    "all_arithmetic_cpp_passed": 17,
-    "all_cpp_sanitized_passed": 17,
+    "all_arithmetic_cpp_passed": 20,
+    "all_cpp_sanitized_passed": 20,
     "previous_projects_passed": 109,
-    "distinct_project_checks_passed": 136,
+    "distinct_project_checks_passed": 139,
     "failed": 0,
     "skipped": 0
   },
   "model_render": {
-    "scope": "C++ adaptation of the actual GenExpr statements, not Max/Gen compilation or native Ableton execution",
-    "frames": 3000000,
-    "sample_rate": 48000,
-    "seconds": 62.5,
-    "peak_abs": 4.87123,
-    "motion_families_exercised": 6,
-    "nonlinear_families_exercised": 5
+    "scope": "C++ adaptation of shipped GenExpr, not native Gen or Ableton execution",
+    "peak_bound_frames": 1500000,
+    "sample_rate": 8000,
+    "seconds": 187.5,
+    "input_abs_max": 1,
+    "output_peak_abs": 0.999874,
+    "peak_bound": "Each output is bounded by accessible input-history peak, allowing floating-point rounding. Checked with changing input levels and sliding-window maxima.",
+    "all_six_motion_families_frames": 2000000,
+    "silence_frames": 1000000,
+    "no_feedback_tail_verified": true
   },
   "fixed_bounds": {
     "buffer_frames": 524288,
-    "buffer_channels_total": 4,
-    "data_bytes": 16777216,
+    "buffer_channels_total": 2,
+    "data_bytes": 8388608,
+    "previous_data_bytes": 16777216,
     "maximum_history_reads_per_frame": 4,
-    "writes_per_frame": 4,
+    "writes_per_frame": 2,
     "delay_grid_samples": 1,
     "delay_seconds_up_to_192khz": 2,
-    "matrix_row_absolute_sum_max": 4,
-    "feedback_memory_absolute_max": 1,
-    "nonfinite_or_input_above_abs_64": "discarded before entering audio history"
+    "matrix_row_nonnegative_sum_max": 1,
+    "gain_range": [
+      0,
+      1
+    ],
+    "feedback": false,
+    "waveshaping": false,
+    "audio_gain_above_one": false,
+    "control_amplitude_values": 65536,
+    "event_and_transition_duration_max_seconds": 12,
+    "nonfinite_or_input_above_abs_64": "discarded before storage"
+  },
+  "randomness": {
+    "generator": "combined ecuyer1988, finite-state PRNG",
+    "target_and_timing_mapping": "direct equal-width bins; no small-value weighting or repeat rejection",
+    "curve_families": 6,
+    "audio_dependent_control": false,
+    "physical_entropy": false,
+    "absolute_unpredictability_guaranteed": false,
+    "all_possible_finite_sequences_guaranteed": false
   },
   "benchmark": {
-    "scope": "Timing of adapted C++ model on Linux, including checked Data addresses. Not native Gen, Ableton, M1 or a 6% CPU verification. No performance portability claim.",
+    "scope": "Adapted C++ arithmetic model on Linux, not native Max, Ableton, M1 or a 6% CPU verification",
     "machine": "x86_64",
-    "compiler": "g++ 14.2.0, C++17 -O3",
+    "compiler": "g++ 14.2.0 C++17 -O3",
     "cases": [
       {
         "scenario": "normal_random",
         "sample_rate": 48000,
         "frames": 960000,
         "audio_seconds": 20,
-        "elapsed_seconds": 0.414953,
-        "nanoseconds_per_frame": 432.243,
-        "checksum": 4122.85
+        "elapsed_seconds": 0.175589,
+        "nanoseconds_per_frame": 182.905,
+        "checksum": 4472.27
       },
       {
         "scenario": "forced_samplewise_dense",
         "sample_rate": 48000,
         "frames": 960000,
         "audio_seconds": 20,
-        "elapsed_seconds": 0.929835,
-        "nanoseconds_per_frame": 968.578,
-        "checksum": 1097.29
+        "elapsed_seconds": 0.267141,
+        "nanoseconds_per_frame": 278.272,
+        "checksum": 2557.97
       }
     ]
   },
@@ -73,5 +94,5 @@
     "max_6_percent_cpu_verified": false,
     "crash_free_guarantee": false
   },
-  "theoretical_scope": "Finite input-derived processor with integer delays, signed bounded matrix gains, selected nonlinearities, topology mixtures and bounded recursive memory. No proof of all possible short output patterns, no Bernoulli-system proof and no absolute randomness guarantee."
+  "theoretical_scope": "Finite input-only attenuation, stereo routing and integer delay. No universal-effect, Bernoulli-system or absolute-randomness claim."
 }

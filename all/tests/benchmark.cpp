@@ -14,8 +14,6 @@ int main(){
             for(auto* m:{&e.all_motion0,&e.all_motion1,&e.all_motion2,&e.all_motion3,&e.all_motion4,&e.all_motion5}){
                 m->hSeed=seed;m->hRate=sr;m->hWait=1e12;m->hShape=5;m->hLimit=96000;m->hPeriod=1;
             }
-            auto& s=e.all_scene0;s.hSeed=seed;s.hRate=sr;s.hWait=1e12;s.hShape=0;s.hPeriod=1;
-            s.hTa=1./3;s.hTb=1./3;s.hTc=1./3;s.hPlace=2;s.hNonlinear=4;s.hDrive=7.9;s.hFeedback=.9;
         }
         for(int n=0;n<warm;n++)e.tick(input[n&4095],input[(n+517)&4095],1,seed);
         auto start=std::chrono::steady_clock::now();

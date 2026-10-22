@@ -9,7 +9,7 @@ sys.path.insert(0, str(ROOT.parent))
 from tools.build import collective
 
 NAME = "All"
-VERSION = "1.0.0"
+VERSION = "2.0.0"
 
 
 def patch():
@@ -24,26 +24,25 @@ def patch():
     def wire(src, out, dest, inlet=0):
         lines.append({"patchline": {"source": [src, out], "destination": [dest, inlet]}})
 
-    box("title", "comment", "All", (8, 9, 94, 24), presentation=1,
-        presentation_rect=[8, 9, 94, 24], fontsize=20, fontname="Arial", fontface=1,
-        numinlets=1, numoutlets=0, ignoreclick=1,
-        textcolor=[0.88, 0.94, 0.91, 1])
-    box("mix", "live.dial", rect=(21, 51, 68, 79), presentation=1,
-        presentation_rect=[21, 51, 68, 79], numinlets=1, numoutlets=2,
+    box("mix", "live.dial", rect=(18, 16, 44, 57), presentation=1,
+        presentation_rect=[18, 16, 44, 57], numinlets=1, numoutlets=2,
         outlettype=["", "float"], varname="dry_wet", parameter_enable=1,
-        showname=1, shownumber=1, appearance=0, fontsize=10,
-        activefgdialcolor=[0.45, 0.87, 0.70, 1],
+        showname=1, shownumber=1, appearance=0,
+        activebgdialcolor=[0.08, 0.08, 0.08, 1],
+        activefgdialcolor=[0.38, 0.85, 0.89, 1],
+        activeneedlecolor=[0.08, 0.08, 0.08, 1],
+        activetextcolor=[0.08, 0.08, 0.08, 1],
         annotation="Dry/Wet. 0% = Eingang, 100% = All. Startet automatisch.",
         saved_attribute_attributes={"valueof": {
             "parameter_longname": "Dry/Wet", "parameter_shortname": "Dry/Wet",
             "parameter_type": 0, "parameter_mmin": 0.0, "parameter_mmax": 100.0,
-            "parameter_initial_enable": 1, "parameter_initial": [100.0],
+            "parameter_initial_enable": 1, "parameter_initial": [10.0],
             "parameter_unitstyle": 5}})
     box("audio_in", text="plugin~", rect=(20, 230, 70, 22), numinlets=2, numoutlets=2,
         outlettype=["signal", "signal"])
     box("audio_out", text="plugout~", rect=(20, 550, 70, 22), numinlets=2, numoutlets=0)
     box("mix_scale", text="* 0.01", rect=(160, 230, 70, 22), numinlets=2, numoutlets=1)
-    box("mix_signal", text="sig~ 1.", rect=(160, 270, 70, 22), numinlets=1, numoutlets=1,
+    box("mix_signal", text="sig~ 0.1", rect=(160, 270, 70, 22), numinlets=1, numoutlets=1,
         outlettype=["signal"])
     box("seed", text="js all_seed.js", rect=(300, 230, 110, 22), numinlets=1, numoutlets=1,
         saved_object_attributes={"filename": "all_seed.js", "autowatch": 0})
@@ -81,10 +80,10 @@ def patch():
     return {"patcher": {
         "fileversion": 1, "appversion": {"major": 8, "minor": 5, "revision": 8,
             "architecture": "x64", "modernui": 1}, "classnamespace": "box",
-        "rect": [80, 80, 650, 650], "openrect": [0, 0, 110, 169], "devicewidth": 110.0,
+        "rect": [80, 80, 650, 650], "openrect": [0, 0, 80, 169], "devicewidth": 80.0,
         "openinpresentation": 1, "bglocked": 1,
-        "bgcolor": [0.10, 0.12, 0.14, 1], "default_fontname": "Arial",
-        "description": "All 1.0.0 — autonomous stereo sample-clocked gain/delay chaos. One Dry/Wet control.",
+        "bgcolor": [0.552941, 0.552941, 0.552941, 1],
+        "description": "All 2.0.0 — input-only stereo attenuation and integer-delay randomness. One Dry/Wet control. No feedback or waveshaping.",
         "boxes": boxes, "lines": lines,
         "parameters": {"mix": ["Dry/Wet", "Dry/Wet", 0],
             "parameterbanks": {"0": {"index": 0, "name": "All",
