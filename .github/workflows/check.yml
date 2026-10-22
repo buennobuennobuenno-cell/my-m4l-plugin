@@ -12,9 +12,11 @@ jobs:
         with:
           python-version: '3.12'
       - run: npm run check
+      - run: python3 all/test.py --sanitize
       - uses: actions/upload-artifact@v4
         with:
           name: Max-for-Live-devices
           path: |
+            all/dist/All.amxd
             random-motion-v3/dist/Random_Motion_16_V3_1.amxd
             dist/Set-and-Forget-Chaos.zip

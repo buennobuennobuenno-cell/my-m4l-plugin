@@ -1,6 +1,8 @@
 /dist/
 /random-motion-v3/dist/
 /random-motion-v3/reports/
+/all/dist/
+/all/reports/
 __pycache__/
 *.pyc
 /node_modules/

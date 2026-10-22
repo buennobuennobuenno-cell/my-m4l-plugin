@@ -1,3 +1,25 @@
+# All — 1.0.0
+
+**[All direkt herunterladen (.amxd)](https://github.com/buennobuennobuenno-cell/my-m4l-plugin/raw/refs/heads/main/All.amxd)**
+
+Eigenständiger Stereo-Chaoseffekt mit **einem einzigen Dry/Wet-Regler**.
+Keine Mappings oder zusätzlichen Stock-Effekte nötig. Die einzelne Datei in
+Ableton Live mit Max for Live als neue Instanz laden. Startwert: **100 % Wet**.
+
+Samplegetaktete Gain- und ganzzahlige Delayverläufe, Stereo-Kreuzmischung,
+serielle/parallele Kombinationen, optionale Nichtlinearitäten und begrenzte
+Rückkopplung. Harte, weiche, gestufte und sampleweise Veränderungen sind erlaubt.
+Ein kompakter nativer `gen~`-Kern ersetzt die externe Parameterfernsteuerung.
+
+[Bedienung, Architektur, Tests und Grenzen](all/README.md).
+Paket und tatsächliche Rechenanweisungen werden auf Linux geprüft. Das ersetzt
+keinen nativen Max-/Ableton-Ladetest. Absturzfreiheit oder höchstens 6 % CPU auf
+einem M1 sind hier nicht verifiziert. Keine Garantie sämtlicher denkbarer Effekte.
+
+Entwicklung: Node.js 20+, Python 3.10+ und C++17-Compiler. `npm run check` prüft
+und baut alle Geräte. All liegt unter `all/`; der ausführbare C++-Prüfhost ist
+kein Ersatz für Cycling '74s Gen-Compiler. Die bisherigen Projekte bleiben erhalten.
+
 # Random Motion 16 — V3.1
 
 **[Plugin direkt herunterladen (.amxd)](https://github.com/buennobuennobuenno-cell/my-m4l-plugin/raw/refs/heads/main/Random_Motion_16_V3_1.amxd)**
@@ -27,9 +49,10 @@ nicht verifiziert.
 - [Analyse und Prüfbericht](random-motion-v3/VALIDATION.md)
 - [Quellcode und Tests](random-motion-v3)
 
-Entwicklung: Node.js 20+, Python 3.10+, keine zusätzlichen Abhängigkeiten.
-`npm run check` führt beide Projekt-Testgruppen aus und baut die Geräte.
-Generierte Dateien liegen in `dist/` und `random-motion-v3/dist/`.
+V3 allein benötigt Node.js 20+ und Python 3.10+, ohne zusätzliche Pakete.
+Der gemeinsame Lauf `npm run check` prüft alle drei Projekte und benötigt für
+All zusätzlich einen C++17-Compiler. Generierte Dateien liegen in `dist/`,
+`random-motion-v3/dist/` und `all/dist/`.
 
 Der frühere Einzelparameter-Prototyp **Set and Forget Chaos** bleibt erhalten:
 [Anleitung](SET_AND_FORGET_README.md),
