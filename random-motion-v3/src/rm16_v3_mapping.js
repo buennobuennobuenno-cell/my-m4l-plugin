@@ -1,10 +1,10 @@
-/* Random Motion 16 / V3. Native ramps; independent v4.1 random streams.
+/* Random Motion 24 / V3.2. Native ramps; original V3.1/v4.1 random streams.
    ES5 for Max 8. No audio-rate JS, value polling, or periodic UI animation. */
 autowatch = 0;
 inlets = 1;
 outlets = 2;
 
-var host = this, COUNT = 16, ready = false, enabled = true;
+var host = this, COUNT = 24, ready = false, enabled = true;
 var selfApi = null, selectionApi = null;
 var selfId = 0, armed = -1, baseline = 0, pending = 0;
 var ancestors = [], serial = 0, lanes = [];
@@ -17,12 +17,18 @@ include("rm16_v3_motion.js");
 var motionTask = new Task(motionCallback, this);
 var sentEvents = 0;
 var stamp = null, logicalTime = 0;
+// Max serializes the primitive list synchronously in outlet(). Reuse one list
+// per lane rather than allocate a new JS array for every native ramp command.
+var valueMessages = [];
 var initTask = new Task(initialize, this);
 var mapTask = new Task(commitSelection, this);
 var refreshTask = new Task(refresh, this);
 var restoreTask = new Task(restoreMappings, this);
-for (var i = 0; i < COUNT; i++) lanes.push({lo: 0, hi: 100, link: null,
-    param: null, id: 0, attached: false, motion: null, quantized: false, error: ""});
+for (var i = 0; i < COUNT; i++) {
+    lanes.push({lo: 0, hi: 100, link: null,
+        param: null, id: 0, attached: false, motion: null, quantized: false, error: ""});
+    valueMessages.push([i + 1, 0, 0]);
+}
 
 // Clamp backward system-clock changes; overdue events are never replayed in a loop.
 function now() {
@@ -75,7 +81,9 @@ function changed() { notifyclients(); }
 function command(j, value, duration) {
     if (!isFinite(value) || !isFinite(duration) || duration < 0 || duration > 60000)
         throw new Error("Ungueltiger Rampenauftrag");
-    outlet(0, [j + 1, value, duration]);
+    var message = valueMessages[j];
+    message[1] = value; message[2] = duration;
+    outlet(0, message);
 }
 function remote(j, id) {
     // Keep uncertainty on an output error, so cleanup can retry the release.
@@ -110,8 +118,8 @@ function updateStatus() {
         if (lanes[j].error) problem=j+1;
     }
     ui("health","set",!enabled ? "DEAKTIVIERT" : problem ? "PRUEFEN "+problem :
-        moving ? "AUTO "+moving+"/16" : n ? "KONSTANT" : "BEREIT");
-    status(n+"/16 zugeordnet"+(missing ? " | "+missing+" fehlen: neu mappen" :
+        moving ? "AUTO "+moving+"/"+COUNT : n ? "KONSTANT" : "BEREIT");
+    status(n+"/"+COUNT+" zugeordnet"+(missing ? " | "+missing+" fehlen: neu mappen" :
         problem ? " | "+lanes[problem-1].error : " | Min/Max = Reglerweg in %"));
 }
 function beginBatch() { batchDepth++; }
@@ -147,7 +155,7 @@ function reschedule() {
 }
 function emit(j,t) {
     var l=lanes[j], m=RM16.next(l.motion,l.low,l.high,t,l.discrete);
-    var native=l.quantized ? m.nativeValue : l.pmin+(l.pmax-l.pmin)*m.target;
+    var native=l.quantized ? m.nativeValue : l.pmin+l.pspan*m.target;
     command(j,native,m.duration);sentEvents++;
 }
 function motionCallback() {
@@ -403,7 +411,7 @@ function assign(j, info) {
     try {fresh.property="name";} catch (e) {}
     release(j);retireParam(j);
     l.id=info.id;l.link=info.link;l.param=fresh;
-    l.pmin = info.pmin; l.pmax = info.pmax; l.quantized=!!info.quantized;
+    l.pmin = info.pmin; l.pmax = info.pmax; l.pspan = info.pmax-info.pmin; l.quantized=!!info.quantized;
     observeOwner(j,info.watchId);
     start(j); syncLane(j); formatBounds(j);
 }
@@ -478,7 +486,7 @@ function refresh() {
                 var info = describe(Number(l.param.id));
                 if (JSON.stringify(info.link) !== JSON.stringify(l.link)) { l.link = info.link; modified = true; }
                 if (l.pmin!==info.pmin || l.pmax!==info.pmax || l.quantized!==info.quantized) {
-                    l.pmin=info.pmin;l.pmax=info.pmax;l.quantized=!!info.quantized;bounds(j);
+                    l.pmin=info.pmin;l.pmax=info.pmax;l.pspan=info.pmax-info.pmin;l.quantized=!!info.quantized;bounds(j);
                 }
                 else if (reattach && l.attached) rebind(j,t);
             } catch (e) { release(j);retireParam(j); }
@@ -558,14 +566,14 @@ function validLink(l) {
     return true;
 }
 function getvalueof() {
-    var s = {version: 5, lanes: []};
+    var s = {version: 6, lanes: []};
     for (var j = 0; j < COUNT; j++) s.lanes.push({lo: lanes[j].lo, hi: lanes[j].hi, link: lanes[j].link});
     return JSON.stringify(s);
 }
 function setvalueof(value) {
     try {
         var s = JSON.parse(String(value));
-        if (!s || (s.version !== 2 && s.version !== 3 && s.version !== 4 && s.version !== 5) || !isArray(s.lanes)) return;
+        if (!s || (s.version !== 2 && s.version !== 3 && s.version !== 4 && s.version !== 5 && s.version !== 6) || !isArray(s.lanes)) return;
         var prepared=[];
         for (var j = 0; j < COUNT; j++) {
             var item=s.lanes[j]||{},lo=clamp(finite(item.lo,0),0,100);

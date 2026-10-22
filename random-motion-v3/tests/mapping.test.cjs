@@ -1,6 +1,6 @@
 "use strict";
 const assert=require("node:assert/strict"),vm=require("node:vm");
-const {makeHost,source}=require("./host.cjs");
+const {makeHost,source,targets}=require("./host.cjs");
 let checks=0;
 const nodeTest=require("node:test");
 function test(name,fn){nodeTest(name,fn);}
@@ -67,17 +67,17 @@ test("native keyboard editor retains decimals and closes after commit",()=>{
  assert.equal(h.ctx.lanes[0].lo/100,12.3456789/100);
  assert.deepEqual(h.objects.get("bound_editor").messages.at(-1),["hidden",1]);
 });
-test("sixteen default slots and only one shared motion task",()=>{
- const h=makeHost();h.initialize();assert.equal(h.tasks.length,5);assert.equal(h.ctx.lanes.length,16);
+test("twenty-four default slots and only one shared motion task",()=>{
+ const h=makeHost();h.initialize();assert.equal(h.tasks.length,5);assert.equal(h.ctx.lanes.length,24);
  for(const l of h.ctx.lanes){assert.equal(l.lo,0);assert.equal(l.hi,100);assert(!l.attached);}
  assert(!h.ctx.motionTask.scheduled);assert(!/\b(?:const|let|async|await)\s/.test(source));
 });
 test("mapping attaches the target before sending native ramp commands and starts automatically",()=>{
- const h=makeHost();h.initialize();h.map(16,111);
- const attach=h.events.findIndex(([o,a])=>o===1&&a[0]===16&&a[2]===111);
- const first=h.events.findIndex(([o,a])=>o===0&&a[0]===16);
+ const h=makeHost();h.initialize();h.map(24,111);
+ const attach=h.events.findIndex(([o,a])=>o===1&&a[0]===24&&a[2]===111);
+ const first=h.events.findIndex(([o,a])=>o===0&&a[0]===24);
  assert(attach>=0&&first>attach);assert(h.ctx.motionTask.scheduled);
- assert(h.ctx.lanes[15].motion.events>0);
+ assert(h.ctx.lanes[23].motion.events>0);
 });
 test("actual native Hz/dB/bipolar ranges are used without a normalized attribute",()=>{
  for(const range of [{min:.01,max:20,unit:"Hz"},{min:20,max:20000,unit:"Hz"},{min:-60,max:6,unit:"dB"},{min:-1,max:1,unit:"Pan"}]){
@@ -97,14 +97,13 @@ test("changed decimal Min/Max immediately stop old ramps and constrain every lat
  for(const [o,a]of h.events.slice(from))if(o===0){assert(a[1]>=24.6913578-1e-10&&a[1]<=58.2469134+1e-10);}
  h.ctx.setting(1,"lo",80);assert.equal(h.ctx.lanes[0].hi,80);assert(!h.ctx.motionTask.scheduled);
 });
-test("all sixteen targets persist, restore and have different deadlines and trajectories",()=>{
+test("all twenty-four targets persist, restore and have different deadlines and trajectories",()=>{
  const h=makeHost();h.initialize();
- const targets=[111,112,121,122,131,132,31,32,41,42,51,52,113,114,123,124];
  targets.forEach((id,i)=>h.map(i+1,id));
  assert(h.ctx.lanes.every(l=>l.attached));
  assert(new Set(h.ctx.lanes.map(l=>l.motion.next)).size>=12);
  assert(new Set(h.ctx.lanes.map(l=>l.motion.target)).size>=12);
- const saved=h.ctx.getvalueof();assert.equal(JSON.parse(saved).version,5);
+ const saved=h.ctx.getvalueof();assert.equal(JSON.parse(saved).version,6);
  h.ctx.setvalueof(saved);h.ctx.restoreTask.fire();assert(h.ctx.lanes.every(l=>l.attached));
  for(let n=0;n<2000;n++)h.fireMotion();
  assert(h.ctx.lanes.every(l=>l.motion.events>20));
@@ -155,12 +154,12 @@ test("switches use valid discrete states, empty ranges suspend and recover",()=>
  h.ctx.setting(1,"hi",100);assert(h.ctx.lanes[0].attached);assert(!h.ctx.motionTask.scheduled); // only state 1
  h.ctx.setting(1,"lo",0);assert(h.ctx.motionTask.scheduled);
 });
-test("old eight- and twelve-slot saved states restore into sixteen rows",()=>{
- for(const [version,count]of[[2,8],[3,12]]){
+test("old eight-, twelve- and sixteen-slot states restore into twenty-four rows",()=>{
+ for(const [version,count]of[[2,8],[3,12],[4,16],[5,16]]){
   const a=makeHost();a.initialize();a.map(1,111);const state=JSON.parse(a.ctx.getvalueof());
   state.version=version;state.lanes=state.lanes.slice(0,count);
   const b=makeHost(1000,1);b.ctx.setvalueof(JSON.stringify(state));b.initialize();
-  assert.equal(b.ctx.lanes[0].id,1111);assert.equal(b.ctx.lanes.length,16);
+  assert.equal(b.ctx.lanes[0].id,1111);assert.equal(b.ctx.lanes.length,24);
   assert(b.ctx.lanes.slice(count).every(l=>!l.link&&l.lo===0&&l.hi===100));
  }
 });
@@ -168,12 +167,13 @@ test("changing a target range on a chain refresh reconfigures its native units",
  const h=makeHost();h.initialize();h.map(1,111);
  h.db.get(111).min=-30;h.db.get(111).max=40;h.ctx.refresh();
  assert.equal(h.ctx.lanes[0].pmin,-30);assert.equal(h.ctx.lanes[0].pmax,40);
+ assert.equal(h.ctx.lanes[0].pspan,70);
  for(let i=0;i<100;i++)h.fireMotion();
  assert(h.events.filter(([o])=>o===0).slice(-50).every(([,a])=>a[1]>=-30&&a[1]<=40));
 });
 test("bad slot messages do not mutate state or throw",()=>{
  const h=makeHost();h.initialize();const before=h.events.length;
- for(const n of [NaN,Infinity,0,-1,1.5,17,"oops"]){h.ctx.map(n,1);h.ctx.clear(n);h.ctx.setting(n,"lo",90);h.ctx.edit(n,"lo");}
+ for(const n of [NaN,Infinity,0,-1,1.5,25,"oops"]){h.ctx.map(n,1);h.ctx.clear(n);h.ctx.setting(n,"lo",90);h.ctx.edit(n,"lo");}
  assert.equal(h.events.length,before);
 });
 test("a failed lane is isolated while other lanes and the common scheduler continue",()=>{

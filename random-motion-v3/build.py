@@ -8,7 +8,10 @@ ROOT=Path(__file__).resolve().parent
 sys.path.insert(0,str(ROOT.parent))
 from tools.build import collective
 
-STEM="Random_Motion_16_V3_1"
+STEM="Random_Motion_24_V3_2"
+COUNT=24
+BANKS=COUNT//8
+WIDTH=BANKS*360
 SOURCES=["rm16_v3_mapping.js","rm16_v3_motion.js","rm16_v3_limits.js"]
 
 
@@ -56,30 +59,30 @@ def patch():
     box("audio_out",text="plugout~",rect=(990,295,70,22),numinlets=2,numoutlets=2,outlettype=["signal","signal"])
     wire("audio_in",0,"audio_out",0);wire("audio_in",1,"audio_out",1)
     for name,y in [("value_route",350),("id_route",390)]:
-        box(name,text="route "+" ".join(map(str,range(1,17))),rect=(24,y,320,22),numinlets=1,numoutlets=17)
+        box(name,text="route "+" ".join(map(str,range(1,COUNT+1))),rect=(24,y,460,22),numinlets=1,numoutlets=COUNT+1)
     wire("engine",0,"value_route");wire("engine",1,"id_route")
-    for n in range(1,17):
+    for n in range(1,COUNT+1):
         box("remote"+str(n),text="live.remote~ @smoothing 0",rect=(24+(n-1)*145,440,135,22),
             numinlets=2,numoutlets=0,saved_object_attributes={"_persistence":0})
         wire("value_route",n-1,"remote"+str(n));wire("id_route",n-1,"remote"+str(n),1)
 
-    visible("background","panel",None,(0,0,720,169),numinlets=1,numoutlets=0,
+    visible("background","panel",None,(0,0,WIDTH,169),numinlets=1,numoutlets=0,
             background=1,bgcolor=[0.1,0.12,0.14,1],border=0,rounded=0,ignoreclick=1)
-    label("title","RANDOM MOTION 16  /  V3.1",(8,3,340,18),fontface=1)
-    label("auto","BEREIT",(575,3,135,18),varname="health")
-    for bank in range(2):
+    label("title","RANDOM MOTION 24  /  V3.2",(8,3,340,18),fontface=1)
+    label("auto","BEREIT",(WIDTH-145,3,135,18),varname="health")
+    for bank in range(BANKS):
         for key,text,x,w in [("target","Ziel",8,174),("map","Map / x",184,46),("lo","Min %",234,56),("hi","Max %",296,56)]:
             label("header_"+str(bank)+"_"+key,text,(bank*360+x,23,w,14))
     # Each canvas occupies only its two numeric columns. Native Map buttons and
     # labels never intersect a jsui, regardless of Max's drawing/click order.
-    for bank in range(2):
+    for bank in range(BANKS):
         name="limits"+str(bank)
         visible(name,"jsui",None,(bank*360+234,40,118,112),numinlets=1,numoutlets=1,
                 filename="rm16_v3_limits.js",varname=name,parameter_enable=0,border=0,
                 bgcolor=[0.1,0.12,0.14,1],
                 hint="Ziehen: ganze Prozentpunkte. Doppelklick: genaue Zahl eingeben, Enter bestaetigt.")
         wire(name,0,"engine")
-    for n in range(1,17):
+    for n in range(1,COUNT+1):
         bx=((n-1)//8)*360;y=40+((n-1)%8)*14;p="lane"+str(n)+"_"
         label(p+"name",str(n)+"  nicht zugeordnet",(bx+8,y,172,14),varname=p+"name")
         visible(p+"map","textbutton","Map",(bx+184,y,44,14),numinlets=1,numoutlets=3,
@@ -96,12 +99,12 @@ def patch():
             bgcolor=[0.2,0.26,0.28,1],textcolor=[0.94,0.95,0.95,1])
     box("edited",text="prepend edited",rect=(24,580,100,22),numinlets=1,numoutlets=1)
     wire("bound_editor",0,"edited");wire("edited",0,"engine")
-    label("status","Map klicken, Ziel waehlen. Min/Max: 0 bis 100% Reglerweg.",(8,153,704,14),varname="status")
+    label("status","Map klicken, Ziel waehlen. Min/Max: 0 bis 100% Reglerweg.",(8,153,WIDTH-16,14),varname="status")
 
     return {"patcher":{"fileversion":1,"appversion":{"major":8,"minor":5,"revision":8,"architecture":"x64","modernui":1},
-        "classnamespace":"box","rect":[80,80,1220,700],"openinpresentation":1,"devicewidth":720.0,
+        "classnamespace":"box","rect":[80,80,1220,700],"openinpresentation":1,"devicewidth":float(WIDTH),
         "default_fontsize":11.0,"default_fontname":"Arial",
-        "description":"16 independent random streams. Native ramps. Map, Min, Max. V3.1 based on v4.1.",
+        "description":"24 independent random mappings. Native ramps. Map, Min, Max. V3.2 based on V3.1; original random rules preserved.",
         "boxes":boxes,"lines":lines,"parameters":{"state":["Motion State","State",0],"inherited_shortname":1},
         "dependency_cache":[{"name":name,"type":"TEXT","implicit":1} for name in SOURCES],"autosave":0}}
 

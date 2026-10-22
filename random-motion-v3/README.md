@@ -1,142 +1,120 @@
-# Random Motion 16 — V3.1
+# Random Motion 24 — V3.2
 
-**[Plugin direkt herunterladen (.amxd)](https://github.com/buennobuennobuenno-cell/my-m4l-plugin/raw/refs/heads/main/Random_Motion_16_V3_1.amxd)**
+**[Plugin direkt herunterladen (.amxd)](https://github.com/buennobuennobuenno-cell/my-m4l-plugin/raw/refs/heads/main/Random_Motion_24_V3_2.amxd)**
 
-**Korrektur in V3.1:** Die breite Zahlenoberfläche aus V3 überlappte alle
-Map-Buttons und Zielnamen. Zwei schmale Zahlenflächen liegen jetzt ausschließlich
-in den Min/Max-Spalten. Dadurch hängt der Zugriff auf Map nicht mehr von der
-Zeichen- oder Klickreihenfolge in Max ab. Als neue Instanz laden und den Titel
-**V3.1** prüfen. Bestehende V3-Instanzen werden nicht automatisch ausgetauscht.
+Erweiterung der bewährten **Random Motion 16 V3.1** auf **24 unabhängige Mappings**.
+Gleiche Zufallsregeln, native Rampen und Map-/Min-/Max-Bedienung. Drei Spalten
+mit je acht Zeilen, 1080 Pixel breit bei gleicher Gerätehöhe. Die drei schmalen
+Zahlenflächen überdecken keine Map-Buttons oder Zielnamen.
 
-Weiterentwicklung des angehängten **Random Motion 16 v4.1**, mit 16 unabhängigen
-Zuordnungen. „V3“ ist der gewünschte Name dieser neuen Codex-Iteration; sie baut
-auf dem aktuellen 16-Slot-Gerät auf, nicht auf der alten 12-Slot-Version 3.0.
+Die ursprüngliche 16er-V3.1 bleibt separat verfügbar:
+[Random Motion 16 V3.1](https://github.com/buennobuennobuenno-cell/my-m4l-plugin/raw/refs/heads/main/Random_Motion_16_V3_1.amxd).
 
-Zweck: Auto Pan und **Align Delay** in deinem Ableton-Live-11-Rack automatisch
-variieren, um Amplitude, Zeit und Stereobild zu verändern. Das Gerät verarbeitet
-selbst keine Effekte; es reicht Stereo-Audio direkt durch und steuert Parameter
-der bereits im Set vorhandenen Geräte auf derselben Spur. Es funktioniert
-weiterhin auch mit anderen von Live angebotenen Zielparametern.
+## Bedienung
 
-## Verwendung
+Die einzelne AMXD enthält alle drei Skripte. Für Live mit Max for Live und
+Max 8.5+ vorgesehen. Als **neue Instanz** vor Auto Pan/Align Delay auf dieselbe
+Spur beziehungsweise Rack-Chain ziehen; bei MIDI-Spuren hinter das Instrument.
+Eine alte Instanz wird durch den Download nicht automatisch ausgetauscht.
 
-Voraussetzung: Ableton Live mit Max for Live auf macOS oder Windows.
-Zielplattform ist wie beim Anhang Live 11 / Max 8.5. Die neue Oberfläche und die
-native Ausführung müssen noch in diesem Host geprüft werden.
+**Map** drücken und Zielparameter anklicken: Die Bewegung beginnt sofort.
+**x** löst die Zuordnung. Min/Max begrenzen den nativen API-Regelweg in Prozent;
+diese Prozent entsprechen nicht zwingend angezeigten Hertz oder Millisekunden.
+Ziehen ändert ganze Prozentpunkte; Doppelklick öffnet den gemeinsamen Editor
+für Dezimalwerte. Anzeigen werden gerundet, gespeicherte Werte nicht.
+Der normale Geräteschalter gibt Ziele frei beziehungsweise startet sie wieder.
 
-1. Die einzelne `.amxd` über den Download-Link herunterladen und als **neue
-   Instanz** in die WET-Chain des Racks ziehen, vor die Zielgeräte. Bei einer
-   MIDI-Spur hinter das Instrument setzen. Die Datei enthält ihre Skripte.
-2. Falls gewünscht zuerst den Bereich mit **Min % / Max %** begrenzen.
-3. In einer Zeile **Map** drücken und den gewünschten Regler in Auto Pan oder
-   Align Delay anklicken. Die unabhängige Zufallsbewegung startet sofort.
-4. **x** entfernt die betreffende Zuordnung. Der normale Ein-/Ausschalter des
-   Geräts gibt alle Ziele frei bzw. startet sie wieder. Das Live-Set speichern.
+Wie bei V3.1 sind regelbare Parameter derselben Spur möglich, auch in benachbarten
+Rack-Chains. Ein Ziel kann nicht gleichzeitig zwei Zeilen zugeordnet werden.
+Bei einem bereits ausgewählten Ziel gegebenenfalls erst einen anderen Parameter
+und dann das gewünschte Ziel anklicken.
 
-Nur Map und Min/Max: keine zusätzlichen Rate-, Seed-, Start-, Kurven- oder
-Glättungsregler. Die 16 Zeilen bilden zwei Spalten mit je acht Mappings.
-
-Min/Max sind Prozent des nativen API-Regelwegs, nicht zwangsläufig Prozent des
-angezeigten Hertz- oder Millisekundenwerts. Ziehen ändert ganze Prozentpunkte.
-Doppelklick öffnet den gemeinsamen Zahleneditor; Dezimalzahl eingeben und mit
-Enter bestätigen. Angezeigt wird gerundet, gespeichert wird die volle Zahl.
-Die Hinweise an den Zahlenfeldern zeigen, soweit Live die Formatierung liefert,
-die dazugehörigen nativen Einheiten. Das ist für kleine Delay-Bereiche hilfreich.
-
-Bei einem bereits ausgewählten Ziel kann Live eine erneute Auswahl desselben
-Parameters ohne neue Auswahlmeldung behandeln. Wenn Map dann wartet, einmal
-einen anderen Regler und anschließend das gewünschte Ziel anklicken.
+**Das Gerät ist wieder ausschließlich ein Parameter-Modulator.** Audio wird
+direkt durchgereicht. Es enthält weder die All-Effektengine noch eigene Delays,
+Verzerrer, Rauschquellen oder Rückkopplungen. Die Stock-Effekte bleiben im Rack.
 
 ## Zufallsverhalten
 
-Die Mathematik aus v4.1 ist unverändert übernommen. Jeder Slot hat eigene
-Pseudozufallszustände, Ziele und Ereignistermine. Neue Zuordnungen und Instanzen
-erhalten neue Startwerte. Ein neuer Auftrag darf eine laufende Rampe unterbrechen.
-Die Zwischenwerte erzeugt unmittelbar `live.remote~` aus Zielwert und Dauer.
+Die Datei `rm16_v3_motion.js` bleibt bytegleich mit V3.1 und dem gelieferten
+v4.1-Zufallskern. Die internen Dateinamen behalten das historische „rm16“.
+Alle 24 Plätze verwenden eigene Zustände und Termine.
 
-- Kontinuierliche Ziele: 50 % Vollbereichswahl, 50 % relative reflektierte
-  Bewegung mit logarithmischer Schrittweite. Auch sehr kleine Bewegungen und
-  die genauen Bereichsgrenzen bleiben möglich.
-- 18 % Sprünge, sonst logarithmische Rampendauern von 1 ms bis knapp 60 s.
-- Neu gezogene Wartezeiten mit wechselnder Skala; durchschnittlich ungefähr
-  6,2 Aufträge pro Sekunde und bewegtem Slot. Ein Mindestabstand von 1 ms wird
-  angefordert. Die JavaScript-Task arbeitet nicht samplegenau.
-- Schalter und Auswahlparameter erhalten ausschließlich gültige ganzzahlige
-  Zustände. Dort sind Sprünge richtig; auch ein Drehknopf kann diskret sein.
-- Min = Max bzw. ein einziger zulässiger Schaltzustand ergibt einen konstanten
-  Slot ohne laufende Zufallsereignisse. Ein leerer diskreter Bereich gibt das
-  Ziel frei und wird angezeigt; nach Erweitern der Grenzen startet er wieder.
+- Kontinuierliche Ziele: ursprüngliche Mischung aus Vollbereichswahl und
+  relativer reflektierter Bewegung mit logarithmischer Schrittweite.
+- 18 % Sprünge, ansonsten ursprüngliche Rampendauern von etwa 1 ms bis 60 s.
+- Ursprüngliche variierende Wartezeiten, kein neuer fester Modulationstakt.
+- Neue Aufträge dürfen laufende Rampen unterbrechen.
+- Schalter und Auswahlparameter erhalten ausschließlich gültige Ganzzahlen.
+- Konstante Bereiche erzeugen keine laufenden Zufallsaufträge.
+- Keine Audio-Trigger, kein Wert-Polling oder laufendes Anzeigen der Zielwerte.
 
-Zufall ist keine Gleichverteilung aller denkbaren Kurven. Die ursprüngliche
-Gewichtung bleibt erhalten. Die Tests belegen weder physikalisch absoluten
-Zufall noch absolute Unvorhersehbarkeit oder sämtliche mathematischen Verläufe.
+Die Verteilungen der All-Versionen werden nicht übernommen. Die ursprüngliche
+Gewichtung bleibt ausdrücklich erhalten. Es bleibt endlicher Pseudozufall;
+absolute Unvorhersehbarkeit oder sämtliche denkbaren Verläufe sind nicht bewiesen.
 
-## Optimierungen und Fehlerbehandlung
+## Optimierung und DSP
 
-- **32 → 2 JSUI** und **32 → 1 Zahleneditor**. Die Anzeige wird nur bei
-  Konfigurationsänderungen gezeichnet; keine laufende Zielwertanimation.
-- **215 → 96 Max-Objekte**. Die 16 nativen Fernsteuerungen sind weiterhin nötig
-  und werden unverändert über Zielwert-/Dauernachrichten angesprochen.
-- Nur tatsächlich bewegte Slots stehen in der laufenden Liste. Eine Prüfung
-  ermittelt gleichzeitig die fälligen Aufträge und den nächsten Termin.
-- Die abgelaufene Einmal-Task wird nicht bei jedem Ereignis nochmals abgebrochen.
-  Bypass und Zustandswechsel bündeln ihre Neuplanung.
-- Unveränderte Grenzen erzeugen keine zusätzlichen Zufallsaufträge oder
-  Speicherbenachrichtigungen. Leere Ausgänge erhalten keine nutzlosen Freigaben.
-- Kein periodisches Live-API-Polling und keine Beobachtung des modulierten Werts.
-  Namen und Strukturen werden nur bei entsprechenden Änderungen bearbeitet.
-- Nach Änderungen der Geräte-/Rack-Position wird die native Bindung erneuert.
-  Eine laufende Rampe wird aus der bisherigen Schätzung mit ihrer Restdauer
-  fortgesetzt; Zufallszustand und nächster Ereignistermin bleiben erhalten.
-- Strukturbeobachtung bezieht übergeordnete Rack-Ketten ein. Umbenennungen
-  aktualisieren gespeicherte Signaturen. Alte Parameter-Handles werden abgelöst,
-  und alte Rückmeldungen dürfen eine neue Zuordnung nicht beeinflussen.
-- Fehler einzelner Ziele und fehlgeschlagene Oberflächenzugriffe stoppen die
-  übrigen Slots nicht. Nicht endliche Rampenwerte werden abgefangen.
-- Ungültige Zustandsdaten und Pfade werden geprüft. Gespeichert werden lokale
-  Referenzen und Grenzen, keine flüchtigen Live-IDs oder Zufallszustände.
-- Ein expliziter `freebang`-Pfad beendet Tasks und Bindungen beim Schließen.
+V3.1 erledigt bereits die wesentlichen Einsparungen: native Zielwert-/Daueraufträge,
+ein gemeinsamer Einmal-Scheduler nur für bewegte Slots, keine laufenden
+Live-API-Abfragen, keine GUI-Animation und gemeinsame Beobachter je Zielgerät.
 
-Das ist eine Reduktion der **Steuerungs- und GUI-Arbeit**. Die eigentliche native
-DSP-Arbeit der 16 Remotes und der Zielgeräte ist nicht auf Linux messbar und
-wurde nicht durch geringere Ereignisdichte oder gröbere Kurven ersetzt.
+Neu in V3.2:
 
-## Tests und Reproduktion
+- Eine vorab angelegte JS-Liste je Slot wird für Rampenaufträge wiederverwendet.
+  Max übergibt ihre primitiven Werte beim `outlet()`-Aufruf als Nachricht.
+- Die native Parameterspanne wird bei Zuordnung/Bereichsänderung berechnet,
+  statt ihre Differenz bei jedem neuen Zielauftrag erneut zu bilden.
+- Plätze 17–24 verwenden denselben Scheduler, keine zusätzlichen Timer.
+- Drei schmale Zahlenflächen und ein Editor bedienen alle 48 Grenzen.
 
-Node.js 20+ und Python 3.10+, keine zusätzlichen Pakete:
+Das spart JS-Listenallokationen und etwas Steuerungsarbeit. Native Max-Nachrichten
+müssen weiterhin übergeben werden. Dies ist **keine gemessene Verringerung von
+Lives DSP-Prozentanzeige**. Bei 24 statt 16 bewegten Zielen entsteht zusätzliche
+Fernsteuerungs- und Zielgeräte-Arbeit. Weniger Gesamtlast trotz acht weiterer
+aktiver Ziele wird nicht versprochen. Unbelegte/konstante Plätze stehen nicht
+in der laufenden Schedulerliste; ihre nativen Objekte bleiben im Patch vorhanden.
+
+## Speicherung
+
+Zustandsversion 6 speichert 24 Zuordnungs-/Grenzenzeilen. Alte Versionen 2–5 für
+8, 12 und 16 Plätze werden akzeptiert; zusätzliche Plätze bleiben leer.
+Flüchtige Live-IDs und laufende Zufallszustände werden nicht gespeichert.
+Das ist Parser-Kompatibilität, kein Nachweis nativer Live-Preset-Migration.
+
+V3.1 akzeptiert Version 6 absichtlich nicht: Ein Zurückladen soll die acht
+zusätzlichen Zuordnungen nicht unbemerkt abschneiden.
+
+## Bauen und Prüfen
+
+Node.js 20+ und Python 3.10+, keine zusätzlichen Projektpakete:
 
 ```sh
-cd /workspace/my-m4l-plugin
-npm run check
+npm --prefix random-motion-v3 run check
+node random-motion-v3/tools/measure.cjs
 ```
 
-Nur diese Version: `npm --prefix random-motion-v3 run check`.
-Die Builds erzeugen in `random-motion-v3/dist/` eine eigenständige `.amxd`, eine
-editierbare `.maxpat`, die drei Skripte und eine ungefrorene `_Source.amxd`.
-Für die Source-Alternative müssen die drei Skripte im gleichen Ordner bleiben.
-Die Hauptdatei enthält sie bereits.
+Der gemeinsame Lauf `npm run check` prüft auch die anderen erhaltenen Geräte
+und benötigt dort einen C++17-Compiler. Buildausgaben liegen in
+`random-motion-v3/dist/`: eingefrorene `Random_Motion_24_V3_2.amxd`, editierbare
+Maxpat, drei Skripte und eine ungefrorene Source-AMXD. Nur die Source-Alternative
+braucht die Skripte daneben. Die Stammdatei wird nach Tests separat aktualisiert.
 
-Die Datei `Random_Motion_16_V3_1.amxd` im Repository-Stamm ist die veröffentlichte
-Download-Kopie. Ein normaler Build schreibt nur ins ignorierte `dist/`. Für eine
-neue Version nach Tests die Stammdatei bewusst aus dem neuen Build aktualisieren.
+**77 Prüfungen:** 64 JavaScript- und 13 Paketprüfungen. Darunter exakte Vergleiche
+von Zielwerten, Dauern, Terminen und PRNG-Zuständen, alle 24 Remotes/Map-Buttons,
+48 Grenzen, gespeicherte Zustände, Bereichswechsel und Fehler-/Lebenszyklusfälle.
 
-Ein unabhängiger Archivleser kontrolliert Ressourcen, Kabel und DSP-Pfad.
-Die unveränderten v4.1-JS-Dateien liegen ausschließlich als Testreferenz unter
-`tests/fixtures/v41/`. Prüfbericht und Ergebnisse: [VALIDATION.md](VALIDATION.md).
+Unveränderte Referenzen: `tests/fixtures/v41/` und `tests/fixtures/v31/`.
+Beim 24er-Vergleich wird die V3.1-Referenz nur im Test auf 24 Plätze erweitert;
+dies ist kein historischer 24er-Release. [Prüfbericht](VALIDATION.md),
+[Messdaten](validation/results.json).
 
-## Noch in echtem Live zu prüfen
+## Native Grenzen
 
-Laden der `.amxd`, native Darstellung und Zahlenbedienung, Parameterbewegung in
-Auto Pan und Align Delay, quantisierte Modi, Bypass/Freigabe, Löschen und Undo,
-Set speichern/schließen/neu laden, Rack-Kopie auf eine neue Spur und
-Geräte-/Spurverschiebungen. Den ganzen Rack-Aufbau kopieren, damit lokale
-Zielreferenzen mitkommen. Gleiche Geräte mit identischen Signaturen können bei
-beliebigen Umbauten nicht in jedem Fall eindeutig unterschieden werden; fehlende
-oder zweifelhafte Ziele neu mappen. Eine laufende externe Automation, native
-Parameter-Modi und DSP-Verhalten sind im Host zu beurteilen.
+Max und Ableton sind hier nicht verfügbar. Laden, GUI, native Set-/Preset-
+Wiederherstellung, Rampenausführung und M1-DSP-Verbrauch der neuen Datei sind
+noch im Host zu prüfen. Die Modelle führen weder Live noch `live.remote~` aus.
+Absturzfreiheit oder bestimmte CPU-Prozentwerte sind damit nicht nachgewiesen.
 
-Zum CPU-Vergleich denselben Rack-Aufbau, dasselbe Audio, dieselben 16 Zielparameter,
-Bereiche, Sample-Rate und Puffergröße verwenden. Erst die Zieleffekte ohne
-Modulation, dann v4.1 und V3 getrennt messen, jeweils auch mit geschlossenen
-Geräteoberflächen. Objektzahl und Dateigröße sind kein Ersatz für diese Messung.
-Absturzfreiheit oder eine bestimmte CPU-Prozentersparnis wird nicht zugesichert.
+Zum CPU-Vergleich zuerst dieselben 16 Ziele und Einstellungen wie V3.1 verwenden;
+anschließend die weiteren acht aktivieren. Audio, Bereiche, Sample-Rate,
+Puffergröße und geöffnete/geschlossene Geräteansicht im Vergleich gleich halten.

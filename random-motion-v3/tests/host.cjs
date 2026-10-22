@@ -1,10 +1,12 @@
 "use strict";
 const fs=require("node:fs"), path=require("node:path"),vm=require("node:vm"),assert=require("node:assert/strict");
 const source=fs.readFileSync(path.join(__dirname,"../src/rm16_v3_mapping.js"),"utf8");
+const targets=[111,112,121,122,131,132,31,32,41,42,51,52,113,114,123,124,
+  211,212,213,214,215,216,217,218];
 let checks=0;
 function test(name,fn){fn();checks++;console.log("PASS "+name);}
 
-function makeHost(base=0,trackIndex=0,legacy=false){
+function makeHost(base=0,trackIndex=0,legacy=false,capacity){
  const db=new Map(),events=[],objects=new Map(),observers=[],tasks=[];
  let selected=0,notifications=0,apiCalls=0,time=100000;
  const counters={schedules:0,cancels:0,lookups:0,uiMessages:0,clockReads:0};
@@ -16,7 +18,7 @@ function makeHost(base=0,trackIndex=0,legacy=false){
  add(5,{type:"RackDevice",canonical_parent:parent(1),name:"Rack",class_name:"AudioEffectGroupDevice",chains:[id(10),id(20)]});
  add(10,{type:"Chain",canonical_parent:parent(5),name:"Wet",devices:[id(100),id(110),id(120)],mixer_device:id(30)});
  add(20,{type:"Chain",canonical_parent:parent(5),name:"Other",devices:[id(130)],mixer_device:id(50)});
- add(100,{type:"MaxDevice",canonical_parent:parent(10),name:"Random Motion 12",class_name:"MxDeviceAudioEffect",parameters:[]});
+ add(100,{type:"MaxDevice",canonical_parent:parent(10),name:"Random Motion",class_name:"MxDeviceAudioEffect",parameters:[]});
  for(const [n,chain,cls,name] of [[110,10,"MxDeviceAudioEffect","Align Delay"],[120,10,"AutoPan","Auto Pan"],[130,20,"AutoFilter","Auto Filter"]]){
   add(n,{type:"Device",canonical_parent:parent(chain),name,class_name:cls,parameters:[id(n+1),id(n+2)]});
   for(let k=1;k<=2;k++)add(n+k,{type:"DeviceParameter",canonical_parent:parent(n),name:k===1?"Time L":"Time R",min:0,max:200,value:.2});
@@ -28,6 +30,10 @@ function makeHost(base=0,trackIndex=0,legacy=false){
  }
  for(const [n,owner]of[[113,110],[114,110],[123,120],[124,120]]){
   db.get(id(owner)).parameters.push(id(n));add(n,{type:"DeviceParameter",canonical_parent:parent(owner),name:"Extra "+n,min:0,max:1,value:.5});
+ }
+ for(let n=211;n<=218;n++){
+  db.get(id(110)).parameters.push(id(n));
+  add(n,{type:"DeviceParameter",canonical_parent:parent(110),name:"Extra "+n,min:0,max:1,value:.5});
  }
  function objectPath(oid){
   if(oid===900000)return "live_set";
@@ -79,8 +85,14 @@ function makeHost(base=0,trackIndex=0,legacy=false){
  const FakeDate=function(){this.getTime=()=>{counters.clockReads++;return time;};};
  const ctx={Task,LiveAPI,Date:FakeDate,console,patcher:{getnamed(name){counters.lookups++;if(!objects.has(name))objects.set(name,{messages:[],message(...a){counters.uiMessages++;this.messages.push(a);}});return objects.get(name);}},
   outlet(n,args){events.push([n,JSON.parse(JSON.stringify(args))]);},notifyclients(){notifications++;},embedmessage(){}};
- ctx.include=function(name){vm.runInContext(fs.readFileSync(path.join(legacy?path.join(__dirname,"fixtures","v41"):path.join(__dirname,"../src"),name),"utf8"),ctx,{filename:name});};
- vm.createContext(ctx);vm.runInContext(legacy?fs.readFileSync(path.join(__dirname,"fixtures","v41","rm16_v41_mapping.js"),"utf8"):source,ctx,{filename:legacy?"v4.1":"V3"});
+ const reference=legacy?(legacy==="v31"?"v31":"v41"):null;
+ const directory=reference?path.join(__dirname,"fixtures",reference):path.join(__dirname,"../src");
+ ctx.include=function(name){vm.runInContext(fs.readFileSync(path.join(directory,name),"utf8"),ctx,{filename:name});};
+ let controller=reference?fs.readFileSync(path.join(directory,reference==="v31"?"rm16_v3_mapping.js":"rm16_v41_mapping.js"),"utf8"):source;
+ // Test-only capacity extension for comparing 24 lanes against the unchanged
+ // V3.1 controller algorithm. Released V3.1 itself remains a 16-lane fixture.
+ if(capacity!==undefined)controller=controller.replace(/\bCOUNT\s*=\s*\d+/, "COUNT = "+capacity);
+ vm.createContext(ctx);vm.runInContext(controller,ctx,{filename:reference||"V3.2"});
  let seedSerial=0;ctx.newSeed=function(j){return 1000003+base*104729+(++seedSerial)*15485863+j*32452843;};
  return{ctx,db,events,objects,tasks,id,objectPath,counters,observers,get apiCalls(){return apiCalls;},get notifications(){return notifications;},
   advance(ms){time+=ms;},
@@ -98,4 +110,4 @@ function makeHost(base=0,trackIndex=0,legacy=false){
 }
 
 
-module.exports={makeHost,source};
+module.exports={makeHost,source,targets};

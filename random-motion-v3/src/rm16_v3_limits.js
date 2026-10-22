@@ -1,4 +1,4 @@
-/* Two narrow jsui panels for 32 limits, replacing 32 independent JS contexts.
+/* Three narrow jsui panels for 48 limits. Based on the V3.1 numeric panels.
    Each canvas is confined to numeric fields; it cannot cover a Map button.
    Redraws only after bounds change or Max requests a paint. ES5 / Max 8. */
 autowatch=0;
@@ -6,23 +6,23 @@ inlets=1;
 outlets=1;
 mgraphics.init();mgraphics.relative_coords=0;mgraphics.autofill=0;
 var values=[],unitLabels=[],bankIndex=0,drag=null,lastHit=null,hover="";
-for (var n=0;n<16;n++) {values.push([0,100]);unitLabels.push(["",""]);}
+for (var n=0;n<24;n++) {values.push([0,100]);unitLabels.push(["",""]);}
 function clip(x) {return Math.max(0,Math.min(100,x));}
 function bank(index) {
     index=Number(index);
-    if ((index!==0 && index!==1) || index===bankIndex) return;
+    if (!isFinite(index) || index!==Math.floor(index) || index<0 || index>=3 || index===bankIndex) return;
     bankIndex=index;drag=null;lastHit=null;hover="";mgraphics.redraw();
 }
 function row(number,lo,hi) {
     var j=Number(number)-1;
-    if (j<0 || j>=16 || j!==Math.floor(j) || !isFinite(lo) || !isFinite(hi)) return;
+    if (j<0 || j>=24 || j!==Math.floor(j) || !isFinite(lo) || !isFinite(hi)) return;
     lo=clip(Number(lo));hi=clip(Number(hi));
     if (values[j][0]===lo && values[j][1]===hi) return;
     values[j][0]=lo;values[j][1]=hi;mgraphics.redraw();
 }
 function units(number,lo,hi) {
     var j=Number(number)-1;
-    if (j<0 || j>=16 || j!==Math.floor(j)) return;
+    if (j<0 || j>=24 || j!==Math.floor(j)) return;
     unitLabels[j]=[String(lo),String(hi)];
 }
 function hit(x,y) {

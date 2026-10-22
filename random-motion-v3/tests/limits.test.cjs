@@ -14,10 +14,10 @@ function panel(callback,bank=0){
   return{c,events,drawn,hints,get redraws(){return redraws;}};
 }
 
-test('two narrow panels render all 32 rounded numbers while retaining exact precision',()=>{
-  for(let bank=0;bank<2;bank++){
+test('three narrow panels render all 48 rounded numbers while retaining exact precision',()=>{
+  for(let bank=0;bank<3;bank++){
     const p=panel(undefined,bank);
-    for(let j=0;j<16;j++)p.c.row(j+1,12.3456789+j,99.123456789);
+    for(let j=0;j<24;j++)p.c.row(j+1,12.3456789+j,99.123456789);
     p.c.paint();assert.equal(p.drawn.length,16);assert.equal(p.events.length,0);
     for(let row=0;row<8;row++){
       const j=bank*8+row;
@@ -29,7 +29,7 @@ test('two narrow panels render all 32 rounded numbers while retaining exact prec
 
 test('bank selection rejects invalid indices and only redraws on a bank change',()=>{
   const p=panel();
-  for(const bank of [0,-1,2,0.5,NaN,Infinity])p.c.bank(bank);
+  for(const bank of [0,-1,3,0.5,NaN,Infinity])p.c.bank(bank);
   assert.equal(p.redraws,0);assert.equal(p.c.bankIndex,0);
   p.c.bank(1);assert.equal(p.redraws,1);assert.equal(p.c.bankIndex,1);
   p.c.bank(1);assert.equal(p.redraws,1);
@@ -37,14 +37,14 @@ test('bank selection rejects invalid indices and only redraws on a bank change',
 
 test('unchanged bounds never request a redraw and bad rows are ignored',()=>{
   const p=panel();p.c.row(1,0,100);assert.equal(p.redraws,0);
-  for(const number of [0,-1,17,1.5,NaN])p.c.row(number,20,80);
+  for(const number of [0,-1,25,1.5,NaN])p.c.row(number,20,80);
   p.c.row(1,NaN,80);assert.equal(p.redraws,0);
   p.c.row(1,20,80);assert.equal(p.redraws,1);
   p.c.row(1,20,80);assert.equal(p.redraws,1);
 });
 
 test('every visible min/max field resolves to the right row, column and keyboard request',()=>{
-  for(let bank=0;bank<2;bank++){
+  for(let bank=0;bank<3;bank++){
     const p=panel(undefined,bank);
     for(let row=0;row<8;row++)for(let key=0;key<2;key++){
       const x=key?68:6,y=row*14+5;
@@ -71,33 +71,34 @@ test('dragging requests integer steps and clamps output without changing the sto
   assert.equal(p.events.length,count);
 });
 
-test('both panels receive controller state and edit their own eight mappings',()=>{
+test('all three panels receive controller state and edit their own eight mappings',()=>{
   const h=makeHost();
-  // Start both at their script default: the controller must explicitly select
-  // bank 1 in the right-hand instance, without relying on optional JSUI args.
+  // Start all at their script default: the controller must select each bank,
+  // without relying on optional JSUI arguments.
   const panels=[panel((out,selector,...args)=>h.ctx[selector](...args)),
+    panel((out,selector,...args)=>h.ctx[selector](...args)),
     panel((out,selector,...args)=>h.ctx[selector](...args))];
-  for(let bank=0;bank<2;bank++){
+  for(let bank=0;bank<3;bank++){
     const box=h.ctx.patcher.getnamed('limits'+bank),message=box.message,p=panels[bank];
     box.message=function(selector,...args){message.call(this,selector,...args);if(typeof p.c[selector]==='function')p.c[selector](...args);};
   }
-  h.initialize();h.ctx.setting(16,'hi',15);
-  assert.equal(panels[0].c.bankIndex,0);assert.equal(panels[1].c.bankIndex,1);
-  const p=panels[1];p.c.onclick(6,103);p.c.ondrag(6,63,1);
-  assert.equal(h.ctx.lanes[15].lo,20);assert.equal(h.ctx.lanes[15].hi,20);
-  assert.equal(p.c.values[15][0],20);assert.equal(p.c.values[15][1],20);
+  h.initialize();h.ctx.setting(24,'hi',15);
+  assert.equal(panels[0].c.bankIndex,0);assert.equal(panels[1].c.bankIndex,1);assert.equal(panels[2].c.bankIndex,2);
+  const p=panels[2];p.c.onclick(6,103);p.c.ondrag(6,63,1);
+  assert.equal(h.ctx.lanes[23].lo,20);assert.equal(h.ctx.lanes[23].hi,20);
+  assert.equal(p.c.values[23][0],20);assert.equal(p.c.values[23][1],20);
   p.c.ondblclick(68,103);
-  assert.equal(h.ctx.editorLane,15);assert.equal(h.ctx.editorKey,'hi');
+  assert.equal(h.ctx.editorLane,23);assert.equal(h.ctx.editorKey,'hi');
   const rect=h.objects.get('bound_editor').messages.findLast(a=>a[0]==='presentation_rect');
-  assert.deepEqual(rect,['presentation_rect',656,138,56,14]);
+  assert.deepEqual(rect,['presentation_rect',1016,138,56,14]);
   h.ctx.edited(20.123456789);
-  assert.equal(h.ctx.lanes[15].hi,20.123456789);
-  assert.equal(p.c.values[15][1],20.123456789);
+  assert.equal(h.ctx.lanes[23].hi,20.123456789);
+  assert.equal(p.c.values[23][1],20.123456789);
   assert.equal(h.ctx.editorLane,-1);
   panels[0].c.onclick(6,103);panels[0].c.ondrag(6,93,1);
   assert.equal(h.ctx.lanes[7].lo,5);
-  assert.equal(h.ctx.lanes[15].lo,20);
-  for(let j=0;j<16;j++)for(let key=0;key<2;key++){
+  assert.equal(h.ctx.lanes[23].lo,20);
+  for(let j=0;j<24;j++)for(let key=0;key<2;key++){
     panels[Math.floor(j/8)].c.ondblclick(key?68:6,(j%8)*14+5);
     assert.equal(h.ctx.editorLane,j);assert.equal(h.ctx.editorKey,key?'hi':'lo');
     const rect=h.objects.get('bound_editor').messages.findLast(a=>a[0]==='presentation_rect');

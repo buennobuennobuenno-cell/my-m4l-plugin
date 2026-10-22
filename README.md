@@ -1,3 +1,21 @@
+# Random Motion 24 — V3.2
+
+**[Random Motion 24 direkt herunterladen (.amxd)](https://github.com/buennobuennobuenno-cell/my-m4l-plugin/raw/refs/heads/main/Random_Motion_24_V3_2.amxd)**
+
+Zurück zum Mapping-Konzept von **Random Motion 16 V3.1**, erweitert auf
+**24 unabhängige Mappings** in drei Spalten mit je acht sichtbaren Map-Buttons.
+Zufallskern und native Rampen bleiben erhalten. Nur Map, x und Min/Max;
+die externen Auto-Pan-/Align-Delay-Geräte bleiben im Rack. Audio läuft direkt durch.
+
+Die Steuerung verwendet Rampen-Nachrichtenlisten wieder und berechnet
+Parameterspannen nur bei Konfigurationsänderungen. Das spart JS-Allokationen;
+eine geringere native DSP-Last trotz acht weiterer aktiver Ziele wird nicht
+versprochen. Als **neue Instanz** laden; oben steht **24 / V3.2**.
+
+[Bedienung und Grenzen](random-motion-v3/README.md),
+[Prüfbericht](random-motion-v3/VALIDATION.md).
+Die ursprüngliche 16er-V3.1-Datei bleibt weiter unten separat verfügbar.
+
 # All — 2.1.0
 
 **[All direkt herunterladen (.amxd)](https://github.com/buennobuennobuenno-cell/my-m4l-plugin/raw/refs/heads/main/All.amxd)**

@@ -1,39 +1,87 @@
 {
-  "date": "2026-10-22",
+  "version": "3.2.0",
+  "base_version": "Random Motion 16 V3.1",
+  "base_commit": "104b9f0",
   "input_device": {
     "filename": "Random_Motion_16 (1).amxd",
     "bytes": 198241,
     "sha256": "1538ec4deb8ff5fc172c5a74fde8ba0c3dd232670eca008d474293ed3c3be40d",
     "archived_version": "4.1",
-    "pdf_archive_files_verified": 133
+    "embedded_mapping_and_motion_match_v41_fixtures": true
   },
-  "output_device": {
+  "selected_base_download": {
     "filename": "Random_Motion_16_V3_1.amxd",
     "bytes": 107793,
-    "sha256": "f1b0a06fa566d2839ebf923f56d257a104c19962ddc0ccd7de65b9593770ef67"
+    "sha256": "f1b0a06fa566d2839ebf923f56d257a104c19962ddc0ccd7de65b9593770ef67",
+    "unchanged": true
+  },
+  "output_device": {
+    "filename": "Random_Motion_24_V3_2.amxd",
+    "bytes": 139052,
+    "sha256": "ab96a97b6b033a293c945d553b8e7400d522daa3468fa96b2add4c85a35f1534"
+  },
+  "sources": {
+    "rm16_v3_limits.js": "73162b02f04e9f28e63d5c9838b569a754538a19d5ac9e30e75dc7fd769c1838",
+    "rm16_v3_motion.js": "f5df5e6d426e59b64302edda9bebfc523f29eb548637e547dc4c796fbeee6aff",
+    "rm16_v3_mapping.js": "1996ff0678fc61baf184337abbcdffff21f2f4ca2612325a1fd6b89a21273715"
   },
   "checks": {
-    "v3_javascript_passed": 62,
-    "v3_python_passed": 12,
-    "legacy_javascript_passed": 27,
-    "legacy_python_passed": 8,
+    "javascript_passed": 64,
+    "python_passed": 13,
+    "random_motion_total": 77,
+    "other_projects_passed": 68,
+    "distinct_project_checks_passed": 145,
     "failed": 0,
     "skipped": 0,
-    "lifecycle_operations": 2000
+    "lifecycle_operations": 2000,
+    "v31_24_lane_comparison_callbacks_per_case": 20000,
+    "v31_cases": [
+      "continuous",
+      "mixed_continuous_discrete"
+    ],
+    "v31_24_reference_scope": "Unchanged released V3.1 controller and motion fixtures, with COUNT extended to 24 in the test host only"
   },
   "patch": {
-    "original_objects": 215,
-    "v3_objects": 96,
-    "original_jsui": 32,
-    "v3_jsui": 2,
-    "original_numeric_editors": 32,
-    "v3_numeric_editors": 1,
-    "original_native_remotes": 16,
-    "v3_native_remotes": 16
+    "objects": 133,
+    "native_remotes": 24,
+    "jsui": 3,
+    "numeric_editors": 1,
+    "map_buttons": 24,
+    "numeric_fields": 48,
+    "banks": 3,
+    "rows_per_bank": 8,
+    "device_width": 1080,
+    "device_height": 169,
+    "numeric_panels_overlap_map_or_target_labels": false,
+    "audio_path": "direct stereo plugin~ -> plugout~"
+  },
+  "preserved_behavior": {
+    "motion_source_byte_identical_to_v31": true,
+    "native_value_duration_messages_exact_in_comparisons": true,
+    "event_deadlines_and_prng_states_exact_in_comparisons": true,
+    "one_shared_motion_task": true,
+    "audio_rate_curves_added": false,
+    "audio_effects_added": false,
+    "event_density_reduced": false
+  },
+  "optimizations": [
+    "Reuse one primitive JS ramp-message array per lane instead of allocating one per native value command",
+    "Cache native parameter span and refresh it on range changes"
+  ],
+  "state": {
+    "version": 6,
+    "accepted_versions": [
+      2,
+      3,
+      4,
+      5,
+      6
+    ],
+    "old_8_12_16_lane_states_fill_new_rows_with_empty_mappings": true
   },
   "control_operations": {
     "scope": "Counts in a Node.js mock host, not native CPU/DSP/memory measurement. Proxy instrumentation is test-only.",
-    "controller_sha256": "04a68e6b8cdec5c4affdd4c284f56ab4eae375855229f65c9731ac9c2a091fc3",
+    "controller_sha256": "1996ff0678fc61baf184337abbcdffff21f2f4ca2612325a1fd6b89a21273715",
     "comparisons": [
       {
         "active": 1,
@@ -41,6 +89,7 @@
           "active_slots": 1,
           "callbacks": 20000,
           "native_value_commands": 20000,
+          "distinct_value_packet_arrays": 20000,
           "slot_array_reads": 734433,
           "api_calls": 0,
           "schedules": 20000,
@@ -53,6 +102,7 @@
           "active_slots": 1,
           "callbacks": 20000,
           "native_value_commands": 20000,
+          "distinct_value_packet_arrays": 1,
           "slot_array_reads": 40000,
           "api_calls": 0,
           "schedules": 20000,
@@ -68,6 +118,7 @@
           "active_slots": 4,
           "callbacks": 20000,
           "native_value_commands": 20037,
+          "distinct_value_packet_arrays": 20037,
           "slot_array_reads": 822903,
           "api_calls": 0,
           "schedules": 20000,
@@ -80,6 +131,7 @@
           "active_slots": 4,
           "callbacks": 20000,
           "native_value_commands": 20037,
+          "distinct_value_packet_arrays": 4,
           "slot_array_reads": 100037,
           "api_calls": 0,
           "schedules": 20000,
@@ -95,6 +147,7 @@
           "active_slots": 16,
           "callbacks": 20000,
           "native_value_commands": 20186,
+          "distinct_value_packet_arrays": 20186,
           "slot_array_reads": 1300385,
           "api_calls": 0,
           "schedules": 20000,
@@ -107,7 +160,130 @@
           "active_slots": 16,
           "callbacks": 20000,
           "native_value_commands": 20186,
+          "distinct_value_packet_arrays": 16,
           "slot_array_reads": 340186,
+          "api_calls": 0,
+          "schedules": 20000,
+          "cancels": 0,
+          "lookups": 0,
+          "uiMessages": 0,
+          "clockReads": 40000
+        }
+      }
+    ],
+    "v31_comparisons": [
+      {
+        "active": 1,
+        "baseline_note": "Unchanged released V3.1 controller",
+        "baseline": {
+          "active_slots": 1,
+          "callbacks": 20000,
+          "native_value_commands": 20000,
+          "distinct_value_packet_arrays": 20000,
+          "slot_array_reads": 40000,
+          "api_calls": 0,
+          "schedules": 20000,
+          "cancels": 0,
+          "lookups": 0,
+          "uiMessages": 0,
+          "clockReads": 40000
+        },
+        "v32": {
+          "active_slots": 1,
+          "callbacks": 20000,
+          "native_value_commands": 20000,
+          "distinct_value_packet_arrays": 1,
+          "slot_array_reads": 40000,
+          "api_calls": 0,
+          "schedules": 20000,
+          "cancels": 0,
+          "lookups": 0,
+          "uiMessages": 0,
+          "clockReads": 40000
+        }
+      },
+      {
+        "active": 4,
+        "baseline_note": "Unchanged released V3.1 controller",
+        "baseline": {
+          "active_slots": 4,
+          "callbacks": 20000,
+          "native_value_commands": 20037,
+          "distinct_value_packet_arrays": 20037,
+          "slot_array_reads": 100037,
+          "api_calls": 0,
+          "schedules": 20000,
+          "cancels": 0,
+          "lookups": 0,
+          "uiMessages": 0,
+          "clockReads": 40000
+        },
+        "v32": {
+          "active_slots": 4,
+          "callbacks": 20000,
+          "native_value_commands": 20037,
+          "distinct_value_packet_arrays": 4,
+          "slot_array_reads": 100037,
+          "api_calls": 0,
+          "schedules": 20000,
+          "cancels": 0,
+          "lookups": 0,
+          "uiMessages": 0,
+          "clockReads": 40000
+        }
+      },
+      {
+        "active": 16,
+        "baseline_note": "Unchanged released V3.1 controller",
+        "baseline": {
+          "active_slots": 16,
+          "callbacks": 20000,
+          "native_value_commands": 20186,
+          "distinct_value_packet_arrays": 20186,
+          "slot_array_reads": 340186,
+          "api_calls": 0,
+          "schedules": 20000,
+          "cancels": 0,
+          "lookups": 0,
+          "uiMessages": 0,
+          "clockReads": 40000
+        },
+        "v32": {
+          "active_slots": 16,
+          "callbacks": 20000,
+          "native_value_commands": 20186,
+          "distinct_value_packet_arrays": 16,
+          "slot_array_reads": 340186,
+          "api_calls": 0,
+          "schedules": 20000,
+          "cancels": 0,
+          "lookups": 0,
+          "uiMessages": 0,
+          "clockReads": 40000
+        }
+      },
+      {
+        "active": 24,
+        "baseline_note": "V3.1 algorithm with only COUNT extended to 24",
+        "baseline": {
+          "active_slots": 24,
+          "callbacks": 20000,
+          "native_value_commands": 20365,
+          "distinct_value_packet_arrays": 20365,
+          "slot_array_reads": 500365,
+          "api_calls": 0,
+          "schedules": 20000,
+          "cancels": 0,
+          "lookups": 0,
+          "uiMessages": 0,
+          "clockReads": 40000
+        },
+        "v32": {
+          "active_slots": 24,
+          "callbacks": 20000,
+          "native_value_commands": 20365,
+          "distinct_value_packet_arrays": 24,
+          "slot_array_reads": 500365,
           "api_calls": 0,
           "schedules": 20000,
           "cancels": 0,
@@ -120,59 +296,48 @@
   },
   "long_model": {
     "scope": "event arithmetic model only; excludes Max Task scheduling, native ramps, Live and target DSP",
-    "seconds": 28800,
-    "lanes": 16,
-    "events": 2871060,
-    "events_per_second": 99.68958333333333,
+    "seconds": 1800,
+    "lanes": 24,
+    "events": 270052,
+    "events_per_second": 150.0288888888889,
     "per_lane": [
-      179954,
-      178940,
-      179042,
-      178636,
-      179898,
-      181049,
-      178812,
-      179453,
-      178842,
-      179819,
-      178876,
-      180912,
-      180095,
-      179325,
-      178958,
-      178449
+      11034,
+      11382,
+      10592,
+      11199,
+      11267,
+      11417,
+      11190,
+      11792,
+      11050,
+      11696,
+      11201,
+      11331,
+      11204,
+      11091,
+      11412,
+      10887,
+      11525,
+      11465,
+      11039,
+      11298,
+      11190,
+      11371,
+      11139,
+      11280
     ],
-    "max_event_gap_ms": 9854.228252217174
+    "max_event_gap_ms": 11184.692306185141
   },
   "native_host": {
     "available": false,
-    "load_tested": false,
+    "amxd_loading_tested": false,
     "gui_tested": false,
-    "native_ramps_tested": false,
-    "native_persistence_tested": false,
-    "cpu_or_dsp_measured": false
+    "native_remote_execution_tested": false,
+    "live_parameter_persistence_tested": false,
+    "native_audio_tested": false,
+    "m1_cpu_measured": false,
+    "cpu_reduction_verified": false,
+    "crash_free_guarantee": false
   },
-  "motion_engine_identical_to_v41": true,
-  "motion_engine_sha256": "f5df5e6d426e59b64302edda9bebfc523f29eb548637e547dc4c796fbeee6aff",
-  "version": "3.1",
-  "ui_fix": {
-    "reported_issue": "V3 Map buttons not visible in the user host; broad JSUI overlaps all 16 native buttons.",
-    "v3_overlapped_map_buttons": 16,
-    "v3_1_overlapped_map_buttons": 0,
-    "canvas_rectangles": [
-      [
-        234,
-        40,
-        118,
-        112
-      ],
-      [
-        594,
-        40,
-        118,
-        112
-      ]
-    ],
-    "verified": "Frozen device geometry, all 16 button attributes and wiring, both controller/panel routes and all 32 numeric fields. Native Max/Live GUI still unavailable."
-  }
+  "limitations": "Node.js simulated controller and GUI tests plus archive inspection. Not native Max, Ableton, live.remote~ DSP, or an M1 CPU measurement. 24 active targets may need more CPU/DSP than 16."
 }

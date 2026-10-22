@@ -36,8 +36,8 @@ class PackageTests(unittest.TestCase):
             self.assertEqual(self.files[name][1],(ROOT/"src"/name).read_bytes())
         self.assertEqual(self.files[builder.STEM+".amxd"][2],17)
 
-    def test_sixteen_native_remotes_receive_direct_value_time_and_id_messages(self):
-        for n in range(1,17):
+    def test_twenty_four_native_remotes_receive_direct_value_time_and_id_messages(self):
+        for n in range(1,25):
             remote=self.boxes["remote"+str(n)]
             self.assertEqual(remote["text"],"live.remote~ @smoothing 0")
             self.assertEqual(remote["numinlets"],2)
@@ -47,15 +47,15 @@ class PackageTests(unittest.TestCase):
     def test_no_own_audio_rate_curve_or_signal_scaling_chain_was_added(self):
         texts=[b.get("text","") for b in self.boxes.values() if b["maxclass"]=="newobj"]
         dsp=[s.split()[0] for s in texts if "~" in s.split()[0]]
-        self.assertEqual(sorted(dsp),sorted(["plugin~","plugout~"]+["live.remote~"]*16))
+        self.assertEqual(sorted(dsp),sorted(["plugin~","plugout~"]+["live.remote~"]*24))
         self.assertNotIn("@normalized",json.dumps(self.patch))
         for channel in (0,1):
             self.assertIn({"source":["audio_in",channel],"destination":["audio_out",channel]},self.wires)
 
-    def test_two_bounded_jsui_and_one_editor_replace_the_previous_32_pairs(self):
-        self.assertEqual(sum(b["maxclass"]=="jsui" for b in self.boxes.values()),2)
+    def test_three_bounded_jsui_and_one_editor_serve_all_48_limits(self):
+        self.assertEqual(sum(b["maxclass"]=="jsui" for b in self.boxes.values()),3)
         self.assertEqual(sum(b["maxclass"]=="flonum" for b in self.boxes.values()),1)
-        self.assertLess(len(self.boxes),100)
+        self.assertLess(len(self.boxes),140)
         self.assertEqual(self.boxes["bound_editor"]["hidden"],1)
 
     def test_no_numeric_canvas_overlaps_any_map_button_or_target_label(self):
@@ -65,19 +65,19 @@ class PackageTests(unittest.TestCase):
             x,y,w,h=a;xx,yy,ww,hh=b
             return x<xx+ww and xx<x+w and y<yy+hh and yy<y+h
         canvases=[b for b in self.boxes.values() if b["maxclass"]=="jsui"]
-        for n in range(1,17):
+        for n in range(1,25):
             for suffix in ("map","name"):
                 native=self.boxes["lane"+str(n)+"_"+suffix]
                 for canvas in [*canvases,self.boxes["bound_editor"]]:
                     self.assertFalse(intersects(canvas["presentation_rect"],native["presentation_rect"]),
                                      (canvas["id"],native["id"]))
-        for bank in range(2):
+        for bank in range(3):
             canvas=self.boxes["limits"+str(bank)]
             self.assertEqual(canvas["varname"],canvas["id"])
             self.assertEqual(canvas["presentation_rect"],[bank*360+234,40,118,112])
 
-    def test_all_sixteen_map_buttons_are_visible_clickable_and_wired_to_their_slot(self):
-        for n in range(1,17):
+    def test_all_twenty_four_map_buttons_are_visible_clickable_and_wired_to_their_slot(self):
+        for n in range(1,25):
             key="lane"+str(n)+"_map";button=self.boxes[key]
             self.assertEqual(button["maxclass"],"textbutton")
             self.assertEqual(button["text"],"Map")
@@ -122,7 +122,7 @@ class PackageTests(unittest.TestCase):
             if b.get("presentation"):
                 x,y,w,h=b["presentation_rect"]
                 self.assertGreaterEqual(x,0);self.assertGreaterEqual(y,0)
-                self.assertLessEqual(x+w,720);self.assertLessEqual(y+h,169)
+                self.assertLessEqual(x+w,1080);self.assertLessEqual(y+h,169)
         self.assertIn("V3",self.boxes["title"]["text"])
 
     def test_rebuilds_and_standalone_source_container_are_reproducible(self):
@@ -139,6 +139,16 @@ class PackageTests(unittest.TestCase):
         }
         for name,digest in expected.items():
             self.assertEqual(hashlib.sha256((ROOT/"tests/fixtures/v41"/name).read_bytes()).hexdigest(),digest)
+
+    def test_v31_references_and_the_shipped_random_arithmetic_are_unchanged(self):
+        expected={
+            "rm16_v3_mapping.js":"04a68e6b8cdec5c4affdd4c284f56ab4eae375855229f65c9731ac9c2a091fc3",
+            "rm16_v3_motion.js":"f5df5e6d426e59b64302edda9bebfc523f29eb548637e547dc4c796fbeee6aff",
+        }
+        for name,digest in expected.items():
+            self.assertEqual(hashlib.sha256((ROOT/"tests/fixtures/v31"/name).read_bytes()).hexdigest(),digest)
+        self.assertEqual((ROOT/"src/rm16_v3_motion.js").read_bytes(),
+                         (ROOT/"tests/fixtures/v31/rm16_v3_motion.js").read_bytes())
 
 
 if __name__=="__main__":

@@ -1,14 +1,50 @@
 const test=require('node:test');
 const assert=require('node:assert/strict');
 const fs=require('node:fs'),path=require('node:path'),vm=require('node:vm');
-const {makeHost}=require('./host.cjs');
-const targets=[111,112,121,122,131,132,31,32,41,42,51,52,113,114,123,124];
+const {makeHost,targets}=require('./host.cjs');
+const originalTargets=targets.slice(0,16);
+
+test('all 24 outputs keep V3.1 commands, deadlines and random states with only capacity extended',()=>{
+  for(const mixed of [false,true]){
+    const before=makeHost(0,0,'v31',24),after=makeHost();
+    for(const h of [before,after]){
+      h.initialize();targets.forEach((id,j)=>{
+        if(mixed&&j%2)Object.assign(h.db.get(id),{min:-2,max:5,value:0,is_quantized:1});
+        h.map(j+1,id);
+      });
+    }
+    const commands=h=>h.events.filter(([out])=>out===0);
+    assert.deepEqual(commands(after),commands(before));
+    before.events.length=after.events.length=0;
+    for(let n=0;n<20000;n++){
+      assert.equal(after.ctx.motionTask.ms,before.ctx.motionTask.ms);
+      before.fireMotion();after.fireMotion();
+      assert.deepEqual(commands(after),commands(before));
+      for(let j=0;j<24;j++){
+        const a=after.ctx.lanes[j].motion,b=before.ctx.lanes[j].motion;
+        assert.equal(a.a,b.a);assert.equal(a.b,b.b);assert.equal(a.next,b.next);
+      }
+      before.events.length=after.events.length=0;
+    }
+  }
+});
+
+test('native ramp packets are reused per lane without changing previously emitted messages',()=>{
+  const h=makeHost(),references=new Set(),outlet=h.ctx.outlet;
+  h.ctx.outlet=(out,message)=>{if(out===0)references.add(message);outlet(out,message);};
+  h.initialize();targets.forEach((id,j)=>h.map(j+1,id));
+  const original=JSON.stringify(h.events),length=h.events.length;
+  for(let n=0;n<5000;n++)h.fireMotion();
+  assert.equal(references.size,24);
+  assert.equal(JSON.stringify(h.events.slice(0,length)),original);
+  assert(h.events.filter(([out])=>out===0).length>5000);
+});
 
 test('V3 preserves v4.1 native value/duration commands, deadlines and PRNG states exactly',()=>{
   for(const mixed of [false,true]){
     const before=makeHost(0,0,true),after=makeHost();
     for(const h of [before,after]){
-      h.initialize();targets.forEach((id,j)=>{
+      h.initialize();originalTargets.forEach((id,j)=>{
         if(mixed&&j%2)Object.assign(h.db.get(id),{min:-2,max:5,value:0,is_quantized:1});
         h.map(j+1,id);
       });
@@ -29,9 +65,9 @@ test('V3 preserves v4.1 native value/duration commands, deadlines and PRNG state
   }
 });
 
-test('the 16 continuous slots share the original rules, not shared trajectories',()=>{
+test('the 24 continuous slots share the original rules, not shared trajectories',()=>{
   const h=makeHost();h.initialize();targets.forEach((id,j)=>h.map(j+1,id));
-  for(let j=0;j<16;j++){
+  for(let j=0;j<24;j++){
     let jumps=0,short=0,long=0,interruptions=0,sumWait=0;
     for(let k=0;k<20000;k++){
       const l=h.ctx.lanes[j],t=l.motion.next;h.ctx.emit(j,t);
@@ -45,12 +81,12 @@ test('the 16 continuous slots share the original rules, not shared trajectories'
   }
 });
 
-test('all 16 bool/enum slots use legal integer states without ramp commands',()=>{
+test('all 24 bool/enum slots use legal integer states without ramp commands',()=>{
   const h=makeHost();h.initialize();
   targets.forEach((id,j)=>{
     const size=[2,5,17][j%3];Object.assign(h.db.get(id),{min:0,max:size-1,value:0,is_quantized:1});h.map(j+1,id);
   });
-  for(let j=0;j<16;j++){
+  for(let j=0;j<24;j++){
     const size=[2,5,17][j%3],counts=Array(size).fill(0);
     for(let k=0;k<20000;k++){
       h.ctx.emit(j,h.ctx.lanes[j].motion.next);
@@ -92,12 +128,12 @@ test('steady-state modulation needs no API reads, UI messages, lookups or Task.c
 });
 
 test('only moving slots are scanned; unbound and constant slots leave no running entries',()=>{
-  const h=makeHost();h.initialize();h.map(12,111);
-  assert.deepEqual(Array.from(h.ctx.running),[11]);
-  h.ctx.setting(12,'lo',100);assert.equal(h.ctx.running.length,0);
+  const h=makeHost();h.initialize();h.map(24,111);
+  assert.deepEqual(Array.from(h.ctx.running),[23]);
+  h.ctx.setting(24,'lo',100);assert.equal(h.ctx.running.length,0);
   assert.equal(h.ctx.motionTask.scheduled,false);
-  h.ctx.setting(12,'lo',0);assert.deepEqual(Array.from(h.ctx.running),[11]);
-  h.ctx.clear(12);assert.equal(h.ctx.running.length,0);
+  h.ctx.setting(24,'lo',0);assert.deepEqual(Array.from(h.ctx.running),[23]);
+  h.ctx.clear(24);assert.equal(h.ctx.running.length,0);
 });
 
 test('batch bypass performs one timer cancellation instead of one per lane',()=>{
@@ -230,7 +266,7 @@ test('2000 configuration/lifecycle operations keep all surviving targets bounded
   let seed=1234567;
   const pick=n=>{seed=seed*48271%2147483647;return seed%n;};
   for(let n=0;n<2000;n++){
-    const j=pick(16),kind=pick(5);
+    const j=pick(24),kind=pick(5);
     if(kind===0){h.ctx.setting(j+1,'lo',pick(100));h.ctx.setting(j+1,'hi',pick(101));}
     else if(kind===1){h.ctx.active(0);h.ctx.active(1);}
     else if(kind===2){h.ctx.clear(j+1);h.select(0);h.map(j+1,targets[j]);}
@@ -243,15 +279,15 @@ test('2000 configuration/lifecycle operations keep all surviving targets bounded
   assert.ok(h.ctx.running.every(j=>h.ctx.lanes[j].attached&&Number.isFinite(h.ctx.lanes[j].motion.next)));
 });
 
-test('16 PRNG streams pass a correlation sanity check with independent seeds',()=>{
+test('24 PRNG streams pass a correlation sanity check with independent seeds',()=>{
   const c={};vm.createContext(c);vm.runInContext(fs.readFileSync(path.join(__dirname,'../src/rm16_v3_motion.js'),'utf8'),c);
-  const states=Array.from({length:16},(_,j)=>c.RM16.create(123457+j*15485863,.5,0));
-  const sums=Array(16).fill(0),squares=Array(16).fill(0),cross=Array.from({length:16},()=>Array(16).fill(0)),N=20000;
+  const states=Array.from({length:24},(_,j)=>c.RM16.create(123457+j*15485863,.5,0));
+  const sums=Array(24).fill(0),squares=Array(24).fill(0),cross=Array.from({length:24},()=>Array(24).fill(0)),N=20000;
   for(let n=0;n<N;n++){
     const x=states.map(s=>c.RM16.random(s));
-    for(let j=0;j<16;j++){sums[j]+=x[j];squares[j]+=x[j]*x[j];for(let k=0;k<j;k++)cross[j][k]+=x[j]*x[k];}
+    for(let j=0;j<24;j++){sums[j]+=x[j];squares[j]+=x[j]*x[j];for(let k=0;k<j;k++)cross[j][k]+=x[j]*x[k];}
   }
-  for(let j=0;j<16;j++)for(let k=0;k<j;k++){
+  for(let j=0;j<24;j++)for(let k=0;k<j;k++){
     const r=(N*cross[j][k]-sums[j]*sums[k])/Math.sqrt((N*squares[j]-sums[j]**2)*(N*squares[k]-sums[k]**2));
     assert.ok(Math.abs(r)<.04);
   }

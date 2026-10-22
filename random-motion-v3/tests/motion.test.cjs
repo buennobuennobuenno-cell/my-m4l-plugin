@@ -52,11 +52,11 @@ test("edited ranges constrain new targets and the starting estimate",()=>{
 });
 const modelSeconds=Number(process.env.RM16_MODEL_SECONDS||1800);
 let report;
-test("sixteen independent streams remain active and bounded through the long model run",()=>{
- const lanes=Array.from({length:16},(_,i)=>M.create(1000003+i*15485863,.5,0));
- const previous=Array(16).fill(0),counts=Array(16).fill(0);let maxGap=0,total=0,time=0;
+test("twenty-four independent streams remain active and bounded through the long model run",()=>{
+ const lanes=Array.from({length:24},(_,i)=>M.create(1000003+i*15485863,.5,0));
+ const previous=Array(24).fill(0),counts=Array(24).fill(0);let maxGap=0,total=0,time=0;
  while(true){
-  let j=0;for(let i=1;i<16;i++)if(lanes[i].next<lanes[j].next)j=i;
+  let j=0;for(let i=1;i<24;i++)if(lanes[i].next<lanes[j].next)j=i;
   time=lanes[j].next;if(time>modelSeconds*1000)break;
   maxGap=Math.max(maxGap,time-previous[j]);previous[j]=time;
   M.next(lanes[j],0,1,time);counts[j]++;total++;
@@ -65,7 +65,7 @@ test("sixteen independent streams remain active and bounded through the long mod
  }
  assert(counts.every(n=>n>8000));assert(new Set(counts).size>8);assert(maxGap<22000);
  report={scope:"event arithmetic model only; excludes Max Task scheduling, native ramps, Live and target DSP",
-   seconds:modelSeconds,lanes:16,events:total,events_per_second:total/modelSeconds,per_lane:counts,max_event_gap_ms:maxGap};
+   seconds:modelSeconds,lanes:24,events:total,events_per_second:total/modelSeconds,per_lane:counts,max_event_gap_ms:maxGap};
  if(process.env.RM16_REPORT_PATH){
   const output=path.resolve(process.env.RM16_REPORT_PATH);
   fs.mkdirSync(path.dirname(output),{recursive:true});

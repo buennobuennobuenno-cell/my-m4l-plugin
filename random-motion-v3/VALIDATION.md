@@ -1,190 +1,105 @@
-# Analyse und Prüfbericht — Random Motion 16 / V3.1
+# Prüfung — Random Motion 24 / V3.2
 
-Stand: 22. Oktober 2026. Ausgangspunkt ist die angehängte Datei
-`Random_Motion_16 (1).amxd`, intern **v4.1**. V3 bezeichnet diese neue Iteration.
-Maschinenlesbare Ergebnisse: [validation/results.json](validation/results.json).
+Ausgangspunkt ist die vom Nutzer ausgewählte **Random Motion 16 V3.1**.
+Das erneut angehängte `Random_Motion_16 (1).amxd` ist die historische v4.1:
+198.241 Bytes, SHA-256
+`1538ec4deb8ff5fc172c5a74fde8ba0c3dd232670eca008d474293ed3c3be40d`.
+Ihre eingebetteten Mapping-/Bewegungsskripte stimmen bytegleich mit den
+vorhandenen v4.1-Testreferenzen überein.
 
-## Korrektur der Map-Oberfläche in V3.1
+Die Aufträge: zum funktionierenden Mapping-Konzept zurückkehren, Optimierungen
+prüfen und 24 statt 16 Zuordnungen anbieten. Die späteren All-Audioeffekte sind
+kein Bestandteil dieser Änderung.
 
-Der Nutzer meldete, dass die Map-Buttons der veröffentlichten V3 nicht sichtbar
-sind. Die Patch-Prüfung zeigt: Alle 16 Buttons waren vorhanden, ihre Rechtecke
-und die Zielnamen lagen jedoch innerhalb der 720 × 112 großen JSUI-Fläche.
-Die Reihenfolge der Objekte im JSON war kein verlässlicher Schutz vor Überdeckung
-und blockierter Mausbedienung in Max. Die früheren Größenprüfungen erfassten
-diese Überschneidung nicht.
+## Umsetzung
 
-V3.1 verwendet zwei Flächen mit je 118 × 112 Pixeln, ausschließlich über den
-jeweiligen Min/Max-Spalten. Kein Map-Button oder Zielname überschneidet sich mit
-einer JSUI-Fläche. Neue Pakettests prüfen diese Geometrie sowie Sichtbarkeit,
-Bedienattribute und vollständige Slot-Verkabelung aller 16 Map-Buttons. Die
-UI-/Controller-Tests prüfen beide Teilflächen und alle 32 Eingabefelder.
-Zufallskern, Scheduler und native DSP-Wege wurden dabei nicht verändert.
-Eine native Sicht- und Bedienprüfung in Ableton steht weiterhin aus.
+24 native Remote-Wege, drei Spalten mit je acht Map-/Min-/Max-Zeilen.
+Gerätehöhe, Zeilen- und Buttonmaße bleiben wie V3.1; die Breite wächst von
+720 auf 1080 Pixel. Drei Zahlenflächen liegen ausschließlich in den Zahlenspalten.
+Ein beweglicher Zahleneditor versorgt alle 48 Grenzen.
 
-## Hintergrund und erhaltene Anforderungen
+Stereo-Audio bleibt direkt von `plugin~` mit `plugout~` verbunden. Es gibt keinen
+eigenen Kurven-DSP, `gen~`, Audio-Delay, Rausch- oder Feedbackpfad.
+Die Zufalls-Arithmetikquelle wurde nicht geändert.
 
-Das PDF dokumentiert acht Versionen: zunächst acht Mappings, später zwölf mit
-einem eigenen Gen-Kurvenkern, schließlich 16 mit ereignisgesteuerten nativen
-Rampen. Frühere Zusatzregler wurden zugunsten von Map, Min und Max entfernt.
-Im Hintergrund steht das Rack mit Auto Pan und Align Delay zur Variation von
-Amplitude, Zeit und Stereo. Mit „Auto Align“ ist in diesem Kontext Align Delay
-gemeint. Die beiden Effekte selbst sind nicht Bestandteil dieses Modulators.
+Neu: wiederverwendbare primitive JS-Listen für native Rampenaufträge und eine
+zwischengespeicherte Parameterspanne. Diese wird bei erkannten Bereichsänderungen
+erneuert. Ausgaben, Ereignisdichte und Kurven werden nicht ausgedünnt.
+Ein Scheduler bearbeitet weiterhin nur bewegte Plätze.
 
-Das PDF enthält neben dem lesbaren Verlauf ein eingebettetes Projekt-ZIP.
-Alle **133 Projektdateien** wurden gegen dessen SHA-256-Manifest geprüft.
-Das angehängte Gerät ist bytegleich mit der archivierten v4.1; auch seine drei
-eingebetteten Skripte stimmen exakt überein. Die historischen Gesprächs- und
-Übergabetexte wurden als Hintergrund gelesen, nicht als neue Arbeitsaufträge.
-Das Gesprächs-PDF und die ursprünglichen Textanhänge werden nicht veröffentlicht.
+Zustandsversion 6 akzeptiert die alten Formate 2–5 und ergänzt leere Zeilen.
+Das Modell prüft die Wiederherstellung aller 24 Zuordnungen. Native Live-Presets
+werden damit nicht ausgeführt.
 
-Die zeit- und amplitudenbezogene Rack-Idee begründet den gewünschten Modulator.
-Sie ist kein Nachweis, dass ein endliches Delay-/Amplitude-Rack sämtliche
-Audioeffekte oder physikalischen Veränderungen erzeugen könnte. Für die
-Implementierung zählen die konkreten Parameter, ihre API-Bereiche und die
-unabhängigen Zufallsfolgen.
+## Vergleich
 
-Erhalten bleiben 16 Mappings auf derselben Spur, eigene Zufallszustände und
-Termine je Slot, sofortiger Start nach Mapping, ausschließlich Min/Max als
-weitere Bedienung, genaue Dezimalwerte unter einer ganzzahligen Anzeige,
-unterbrechbare native Rampen, Sprünge und gültige diskrete Zustände. Es gibt
-keine neue Rate-Begrenzung, keine gröbere Auflösung und keinen zusätzlichen
-festen Modulationstakt. Die ursprüngliche Wahrscheinlichkeitsverteilung bleibt
-erhalten. Eine neue Datei aktualisiert alte Live-Instanzen nicht automatisch.
+Die unveränderten V3.1-Skripte aus Commit `104b9f0` liegen unter
+`tests/fixtures/v31/`. Beim 24er-Vergleich wird nur im Prüfhost die Kapazität der
+Referenz auf 24 gesetzt. Die Dateien werden nicht geändert und es wird kein
+historischer 24er-Release behauptet.
 
-## Befund und Umsetzung
+Je 20.000 Scheduler-Callbacks mit 24 stetigen beziehungsweise gemischten
+stetigen/diskreten Zielen prüfen **exakt gleiche** native Wert-/Daueraufträge,
+Task-Wartezeiten, Ereignistermine und beide PRNG-Zustände aller Slots.
+Weitere Vergleiche mit v4.1 prüfen die ursprünglichen 16 Wege.
+Die bytegleiche Bewegungsquelle wird zusätzlich per SHA-256 abgesichert.
 
-| Befund in v4.1 | Umsetzung in V3.1 |
-|---|---|
-| Der eigene Kurven-DSP ist schon entfernt. | Native Zielwert-/Daueraufträge beibehalten; keine eigene Signal- oder Kurvenkette ergänzt. |
-| 32 JSUI-Zahlenfelder plus 32 verborgene Flonum-Editoren und separate Nachrichtenwege. | Zwei schmale JSUI-Flächen und ein beweglicher Editor für alle 32 Grenzen. |
-| Der Scheduler durchsucht alle 16 Slots beim Auslösen und erneut beim Planen. | Sortierte Liste der tatsächlich bewegten Slots; ein Durchlauf erledigt beide Aufgaben. |
-| Jede abgelaufene Einmal-Task wird nochmals abgebrochen. | Im normalen Callback kein zusätzliches `Task.cancel()`. |
-| Laufende Diagnoseanzeige sucht Oberflächenobjekte und setzt Text. | Keine periodischen GUI-Nachrichten. Statusänderungen und Fehler bleiben sichtbar. |
-| Bypass/Zustandswechsel planen innerhalb jeder einzelnen Freigabe neu. | Zusammenhängende Änderungen bündeln die Neuplanung. |
-| Derselbe Min/Max-Wert löst einen neuen Zufallsauftrag aus. | Unveränderte Werte sind wirkungslos; keine unnötige Zustandsbenachrichtigung. |
-| Neue LiveAPI-Handles ersetzen alte ohne ausdrückliche Ablösung; alte Callbacks können noch reagieren. | Alte Handles abmelden und auf ID 0 setzen; Rückmeldungen müssen zum aktuellen Handle und Ziel passen. |
-| Nur die nächste Geräte-Chain wird strukturell beobachtet. | Übergeordnete Chains/Racks/Spuren einbeziehen, ohne Parameterwerte zu beobachten. |
-| Bei einem Kontextwechsel ist keine ausdrückliche Wiederanbindung des bestehenden Remotes vorgesehen. | Nativer Kontextmelder und gezielte Wiederanbindung mit geschätzter aktueller Position und Restdauer; Zufallszustand/Termin bleiben erhalten. |
-| Umbenennungen können gespeicherte Signaturen veralten lassen. | Namensänderungen getrennt beobachten und Metadaten aktualisieren. |
-| Fehler im GUI-Zugriff können laufende Steuerung unterbrechen. | UI-Ausnahmen abfangen und ungültige Objekt-Caches verwerfen. |
-| Zustandsdaten prüfen Pfadbestandteile nur grob. | Lokale Pfadtokens validieren; ungültige Zustandsversionen lassen den vorhandenen Zustand unangetastet. |
-| Cleanup hängt am JavaScript-Lebenszyklus. | Zusätzlich ein expliziter `freebang`-Pfad zu `notifydeleted`. |
+## Gemessene Steuerungsarbeit
 
-Bei der Überarbeitung wurden außerdem zwei Zustandsrandfälle getestet und
-behandelt: Das Laden eines leeren Zustands muss die Anzeige sofort auf BEREIT
-setzen; eine fehlgeschlagene native Freigabe darf beim Zustandswechsel nicht
-aus der Fehleranzeige verschwinden und kann erneut versucht werden.
+Je 20.000 simulierte Scheduler-Callbacks:
 
-Zusätzliche Namens- und Strukturbeobachter reagieren auf Bearbeitungsvorgänge.
-Sie erhöhen dort bewusst die Kontrollarbeit, damit Referenzen aktuell bleiben.
-Sie beobachten keine laufenden Parameterwerte und erzeugen keinen eigenen DSP.
-
-## Messbare Reduktion
-
-| Statische Größe | v4.1 | V3.1 |
+| Bewegte Plätze | Wertaufträge je Version | Unterschiedliche JS-Wertlisten V3.1 → V3.2 |
 |---|---:|---:|
-| Max-Objekte | 215 | 96 |
-| JSUI-Objekte | 32 | 2 |
-| native Zahleneditoren | 32 | 1 |
-| `live.remote~` | 16 | 16 |
-| AMXD-Dateigröße | 198.241 Bytes | 107.793 Bytes |
+| 1 | 20.000 | 20.000 → 1 |
+| 4 | 20.037 | 20.037 → 4 |
+| 16 | 20.186 | 20.186 → 16 |
+| 24 | 20.365 | 20.365 → 24 |
 
-Der Codec und die eingebetteten Ressourcen werden unabhängig gelesen und
-geprüft. Weniger Objekte und eine um 45,6 % kleinere Datei belegen keine gleich
-große Ersparnis von CPU, DSP oder Speicher. Die nativen Fernsteuerungen und die
-Zieleffekte benötigen weiterhin Verarbeitung.
+Für die letzte Zeile gilt der oben beschriebene reine Kapazitätsvergleich.
+Listen werden anhand ihrer Objektidentität gezählt. Native Max-Nachrichten und
+interne Host-Allokationen werden nicht gemessen.
 
-Zusätzlich wurden jeweils **20.000 Scheduler-Aufrufe** instrumentiert. Gezählt
-wurden Zugriffe auf das Slot-Array und Aufrufe der nachgebildeten Max-Schnittstelle;
-es handelt sich nicht um Zeitmessungen in Max oder Ableton.
+In allen V3.1-/V3.2-Läufen: keine laufenden Live-API-Abfragen, GUI-Nachrichten,
+Objektsuchen oder redundanten Task-Abbrüche. Scheduler- und Slot-Zugriffszahlen
+werden nicht durch einen anderen Zufallsablauf reduziert. Die Messdatei enthält
+außerdem den Vergleich mit der älteren v4.1.
 
-| Bewegte Slots | Slot-Zugriffe v4.1 → V3 | Native Wertaufträge je Version | Task-Abbrüche v4.1 → V3 | GUI-Nachrichten v4.1 → V3 |
-|---|---:|---:|---:|---:|
-| 1 | 734.433 → 40.000 | 20.000 | 20.000 → 0 | 2.153 → 0 |
-| 4 | 822.903 → 100.037 | 20.037 | 20.000 → 0 | 718 → 0 |
-| 16 | 1.300.385 → 340.186 | 20.186 | 20.000 → 0 | 199 → 0 |
+Das belegt weniger neue JS-Listen, keine bestimmte Verringerung von CPU oder
+nativer DSP-Last in Ableton. 24 aktive Remotes und ihre Ziele dürfen mehr
+Arbeit benötigen als 16.
 
-Während dieser Läufe führten beide Versionen keine Live-API-Abfragen aus.
-Anzahl der Timer-Planungen und Uhrabfragen blieb gleich. Die tatsächliche
-Native-Ausgabe und DSP-Ausführung wurden dabei nicht ausgeführt.
+## Prüfungen
 
-## Testergebnisse
+**77 Prüfungen:** 64 JavaScript- und 13 Python-Pakettests.
 
-**74 V3.1-Prüfungen bestanden:** 62 JavaScript-Tests und 12 Python-Pakettests,
-keine fehlgeschlagenen oder übersprungenen Tests. Der gemeinsame Projektlauf
-prüfte zusätzlich die erhaltenen 35 Tests des früheren Einzelparameter-Prototyps:
-**109 Prüfungen insgesamt**, beide Builds erfolgreich.
+- Alle 24 Remote-Wege und Map-Buttons vorhanden, sichtbar konfiguriert,
+  korrekt verkabelt und ohne Überschneidung mit Zahlenflächen.
+- Alle drei Zahlenflächen und 48 Grenzen: richtige Zeile/Spalte, Rundung,
+  Dragging, Dezimaleingabe und Editorposition bis zur dritten Spalte.
+- Eigene Zufallszustände, stetige/diskrete, konstante/leere Bereiche,
+  unterbrechbare Rampen und dynamische Parameterbereiche.
+- 24 gespeicherte Mappings, ältere Zustände, lokale Rack-Referenzen.
+- 2.000 Konfigurations-/Lebenszyklusvorgänge mit 24 Plätzen, Fehlerisolation,
+  Bypass/Freigabe, Löschen, Neumappen und veränderte Uhrzeit.
+- 24 Zufallsströme im 30-Minuten-Ereignismodell, kein Ableton-Dauerlauf.
+- Wiederverwendete Listen ändern bereits abgegebene Nachrichten im Modell nicht.
+- Unveränderte Referenzdateien, eigenständiges Ressourcenarchiv, direkte
+  Stereoverbindung, Start-/Cleanup-Pfade und reproduzierbare Builds.
 
-Die V3-Prüfungen umfassen:
+Der gemeinsame Projektlauf prüft zusätzlich 35 Fälle des frühen Mapping-
+Prototyps und 33 für All: **145 insgesamt**. Diese anderen Geräte werden durch
+die neue Mapping-Datei nicht ersetzt.
 
-- Zwei Vergleichsläufe mit jeweils 20.000 Task-Aufrufen, einmal stetige und
-  einmal gemischte Ziele. In den geprüften Folgen waren sämtliche nativen
-  Zielwert-/Dauernachrichten, Ereignistermine und PRNG-Zustände exakt wie v4.1.
-  Entfernte nutzlose ID-0-Nachrichten an leere Slots werden dabei nicht als
-  Wertaufträge betrachtet.
-- 20.000 Ereignisse pro stetigem Slot und weitere 20.000 pro diskretem Slot:
-  gleiche Regeln, verschiedene Verläufe, kurze/lange Rampen, Sprünge, gültige
-  Schaltzustände; eine Korrelationsprüfung als Plausibilitätskontrolle.
-- Gleiche normalisierte Verläufe für Hertz-, dB- und bipolare API-Bereiche bei
-  gleichen Seeds und Startpositionen.
-- **Acht Modellstunden:** 2.871.060 Ereignisse auf 16 getrennten Zuständen,
-  ungefähr 99,69 Ereignisse/s insgesamt. Das ist ein reines Rechenmodell,
-  kein achtstündiger Lauf von Ableton oder des nativen Schedulers.
-- 2.000 simulierte Lebenszyklus-/Konfigurationsvorgänge mit Grenzen, Bypass,
-  Löschen/Neumappen, Speicherzustand und Uhrzeitänderung.
-- Alle 32 Zahlenfelder: richtige Zuordnung, Rundung, Einerschritte,
-  genaue Tastatureingabe, beweglicher Editor, gekreuzte Grenzen und Tooltips.
-- Alle 16 Map-Buttons: sichtbar und anklickbar konfiguriert, richtige Verkabelung,
-  keine Überschneidung mit einer Zahlenfläche oder einem Zahleneditor.
-- Fehlerisolation, leere/konstante Bereiche, veraltete Callbacks, ungültige
-  Pfade, ungültige Uhrzeitwerte, Namensänderungen, Rack-Kopien und Rebind.
-- Ressourcenintegrität, direkte Stereoverbindung, 16 native Remote-Wege,
-  Zustandsspeicherung, Cleanup-Verkabelung und reproduzierbare Builds.
+## Native Grenzen
 
-Die Bewegungsquelle ist weiterhin deterministischer ecuyer1988-Pseudozufall.
-Statistische Plausibilität und lange Testfolgen beweisen weder absoluten Zufall
-noch Absturzfreiheit. Im Archiv dokumentierte alte `@normalized`- und Gen-
-Parserprobleme werden nicht wieder eingeführt. Gekrümmte Bewegung entsteht hier
-aus aufeinanderfolgenden linearen Segmenten, nicht aus einem neuen Gen-Kern.
+Der Prüfhost bildet Max-JavaScript-, Task-, GUI- und LiveAPI-Schnittstellen nach.
+Ein nativer Max-/Ableton-Host steht hier nicht zur Verfügung. Laden, Darstellung,
+native Speicherung, Rampenausführung und M1-DSP-Verbrauch sind noch nicht geprüft.
+Absturzfreiheit wird nicht zugesichert.
 
-## Grenzen und Host-Abnahme
+V3.1 und V3.2 zuerst mit denselben 16 Mappings vergleichen, danach die weiteren
+acht aktivieren. Audio, Zielgeräte, Bereiche, Sample-Rate, Puffergröße und
+geöffnete/geschlossene Geräteansicht dabei gleich halten.
 
-Hier steht Linux mit Node.js und Python zur Verfügung; Ableton Live und Max
-fehlen. Deshalb bleiben das native Laden der Datei, die Darstellung, tatsächliche
-Bedienung, native Referenzspeicherung und Audio-/DSP-Ausführung **ungetestet**.
-Die Beobachter- und Kurvenmodelle sind keine Implementierung der Live-Laufzeit.
-Die korrigierte GUI ist ein zusätzlicher Schwerpunkt für den nächsten Hosttest.
-
-In Live 11 zuerst eine neue Instanz in einem Test-Set einsetzen und prüfen:
-
-1. Neue V3.1-Instanz lädt ohne fehlende Objekte/Skripte; alle 16 Map-Buttons und
-   Zielnamen sind sichtbar und jeder Button lässt sich anklicken.
-2. Auto Pan und Align Delay: Mapping, native Einheiten, Bereichsgrenzen,
-   stetige und quantisierte Modi, Dezimal-Eingabe in beiden Spalten.
-3. Audio-Durchleitung, unterbrechbare Rampen, Bypass/Freigabe und Löschen.
-4. Set speichern, schließen und neu öffnen; lokale Zuordnungen und Grenzen.
-5. Rack duplizieren, neue Spur, Geräte/Ketten/Spuren verschieben, Ziel umbenennen,
-   Ziel löschen und Undo. Bestehende externe Automation ebenfalls prüfen.
-6. v4.1 und V3 unter gleichen Audio-, Ziel-, Puffer- und Sample-Rate-Bedingungen
-   getrennt messen; Einfluss der Zielgeräte und geöffneter Oberfläche unterscheiden.
-
-Die Rebind-Position ist eine Schätzung aus dem letzten Auftrag. Sie misst nicht
-die samplegenaue native Position; Änderungen durch den Host können davon
-abweichen. Identische Geräte-/Parametersignaturen und beliebige Umbauten sind
-nicht immer eindeutig auflösbar. Eine konkrete CPU-/DSP-Prozentersparnis oder
-ein vollkommen nicht abstürzbares Gerät wird nicht zugesichert.
-
-## Reproduzieren
-
-```sh
-cd /workspace/my-m4l-plugin
-npm run check
-cd random-motion-v3
-node tools/measure.cjs
-RM16_MODEL_SECONDS=28800 RM16_REPORT_PATH=reports/long-model.json node --test tests/motion.test.cjs
-```
-
-Builds und aktuelle Messlogs werden in ignorierten Ausgabeverzeichnissen erzeugt.
-Die eingefrorene Prüfzusammenfassung unter `validation/results.json` gehört zur
-vorliegenden V3.1-Datei, einschließlich deren SHA-256. Ein neuer Testlauf ersetzt
-diese Release-Zusammenfassung nicht automatisch.
+Reproduktion: [README.md](README.md). Maschinenlesbare Ergebnisse:
+[validation/results.json](validation/results.json).
