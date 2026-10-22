@@ -15,6 +15,7 @@ template<class F> void check(const char* name,F run){run();checks++;std::cout<<"
 void freeze_motion(AllMotion& m,double seed,double sr,double value){
     m.hSeed=seed;m.hRate=sr;m.hWait=1e12;m.hAge=0;m.hPeriod=1;
     m.hValue=value;m.hFrom=value;m.hTo=value;m.hShape=0;
+    m.hMaximum=std::max(1.,floor(sr*12));m.hLimit=std::min(524287.,floor(sr*2));
 }
 void freeze(AllEngine& e,double seed,double gl=1,double gr=1,
             double pl=0,double pr=1,double dl=0,double dr=0){
@@ -27,6 +28,26 @@ void freeze(AllEngine& e,double seed,double gl=1,double gr=1,
 }
 int main(){try{
     constexpr double seed=1234567;
+    check("five-second steady-tone render has no sustained broadband modulation",[&]{
+        // Seed 3823 selected V2.0's sample-wise left delay noise for 11.64 seconds.
+        // A sine obeys y[n]-2*cos(w)*y[n-1]+y[n-2]=0 at fixed delay/gain.
+        // Slowly moving gain and occasional hard events cause small residuals;
+        // randomized sample addresses instead produce a sustained large residual.
+        AllEngine e(48000);constexpr int warm=96000,frames=240000;
+        double omega=2*3.14159265358979323846*997/48000;
+        double previous=0,previous2=0,energy=0,residual=0;
+        for(int n=0;n<warm+frames;n++){
+            double input=.5*std::sin(omega*n);
+            auto y=e.tick(input,input,1,3823);
+            double q=y[0]-2*std::cos(omega)*previous+previous2;
+            if(n>=warm){energy+=y[0]*y[0];residual+=q*q;}
+            previous2=previous;previous=y[0];
+        }
+        require(energy>1,"test tone missing");
+        double ratio=residual/energy;
+        std::cout<<"NOISE_REGRESSION seconds=5 residual_energy_ratio="<<ratio<<"\n";
+        require(ratio<.01,"sustained broadband modulation of the input tone");
+    });
     check("zero input remains exactly silent under running random processing",[&]{
         AllEngine e(8000);
         for(int n=0;n<1000000;n++){auto y=e.tick(0,0,1,seed);require(y[0]==0&&y[1]==0,"autonomous audio appeared");}
@@ -108,8 +129,10 @@ int main(){try{
             near(y[1],y[0],"same-input tail");
         }
         freeze(e,seed,1,1,0,0);
-        for(auto* m:{&e.all_motion4,&e.all_motion5}){m->hShape=5;m->hLimit=16000;}
-        for(int n=0;n<100000;n++){auto y=e.tick(0,0,1,seed);require(y[0]==0&&y[1]==0,"old sound reappeared");}
+        for(int n=0;n<100000;n++){
+            e.all_motion4.hWait=0;e.all_motion5.hWait=0;
+            auto y=e.tick(0,0,1,seed);require(y[0]==0&&y[1]==0,"old sound reappeared");
+        }
     });
     check("random output never exceeds the accessible input-history peak",[&]{
         AllEngine e(8000);std::deque<std::pair<int,double>> maxima;
@@ -147,7 +170,7 @@ int main(){try{
             require(t.dL==floor(t.dL)&&t.dR==floor(t.dR),"fractional audio address");
             leftRightDifferent|=t.dL!=t.dR&&t.gainL!=t.gainR;
         }
-        require(shapes.size()==6&&leftRightDifferent,"missing motion diversity");
+        require(shapes.size()==5&&leftRightDifferent,"missing motion diversity");
     });
     check("target endpoints and direct interval bins have no forced small-value weighting",[&]{
         near(all_target(0,0,96000),0,"gain zero");
@@ -162,7 +185,7 @@ int main(){try{
     check("identical draws and targets are accepted without repeat rejection",[&]{
         AllMotion m;m.hSeed=seed;m.hRate=48000;m.hMaximum=576000;m.hLimit=96000;
         double a=100,b=1,u=0,target=0;
-        for(int n=0;n<6;n++){std::tie(u,a,b)=all_random(a,b);if(n==0)require(u<1./6,"fixture must select hold");if(n==3)target=all_target(u,0,96000);}
+        for(int n=0;n<6;n++){std::tie(u,a,b)=all_random(a,b);if(n==0)require(u<1./5,"fixture must select hold");if(n==3)target=all_target(u,0,96000);}
         m.hValue=target;
         for(int n=0;n<100;n++){
             m.hWait=0;m.hA=100;m.hB=1;
@@ -170,7 +193,7 @@ int main(){try{
             near(m.hA,a,"extra draw rejected repeat");near(m.hB,b,"extra second draw");
         }
     });
-    check("random sanity and all six event modes have balanced selection bins",[&]{
+    check("random sanity and all five gain and pan modes have balanced selection bins",[&]{
         double a=12345,b=67890,u=0,sum=0,squares=0;
         std::array<int,16> bins{};
         for(int n=0;n<1000000;n++){
@@ -180,14 +203,37 @@ int main(){try{
         require(std::abs(sum/1000000-.5)<.003,"random mean");
         require(std::abs(squares/1000000-1./3)<.003,"random second moment");
         for(int count:bins)require(std::abs(count-62500)<1800,"uneven target bins");
-        AllMotion m;std::array<int,6> modes{};double waits=0,periods=0;
+        AllMotion m;std::array<int,5> modes{};double waits=0,periods=0;
         for(int n=0;n<100000;n++){
-            m.hWait=0;m.tick(seed,1,1,0,48000);modes[int(m.hShape)]++;
+            m.hWait=0;m.tick(seed,1,1,0,48000);
+            require(m.hShape>=0&&m.hShape<5,"sample-wise noise mode selected");
+            modes[int(m.hShape)]++;
             waits+=m.hWait+1;periods+=m.hPeriod;
         }
-        for(int count:modes)require(std::abs(count-100000./6)<600,"uneven mode bins");
+        for(int count:modes)require(std::abs(count-100000./5)<600,"uneven mode bins");
         require(std::abs(waits/100000/576000-.5)<.005,"duration weighting");
         require(std::abs(periods/100000/576000-.5)<.005,"transition weighting");
+    });
+    check("delay time stays fixed between events instead of resampling the input",[&]{
+        for(int shape=0;shape<5;shape++){
+            AllMotion m;freeze_motion(m,seed,48000,2400);
+            m.hShape=shape;m.hFrom=0;m.hTo=2400;m.hPeriod=240000;m.hLimit=96000;
+            double a=m.hA,b=m.hB;
+            for(int n=0;n<240000;n++){
+                near(m.tick(seed,5,0,1,48000),2400,"delay swept between events");
+                near(m.hA,a,"per-sample first random draw");near(m.hB,b,"per-sample second random draw");
+            }
+        }
+    });
+    check("delay events keep a sample-rate-correct twenty millisecond minimum hold",[&]{
+        for(double sr:std::array<double,5>{8000,44100,48000,96000,192000}){
+            AllMotion m;
+            for(int n=0;n<10000;n++){
+                m.hWait=0;m.tick(seed,5,0,1,sr);
+                require(m.hWait+1>=floor(sr*.02)&&m.hWait+1<=sr*12,"delay event rate");
+                near(m.hShape,0,"delay is not held");
+            }
+        }
     });
     check("invalid inputs and controls cannot poison audio memory",[&]{
         AllEngine e(48000);double nan=std::numeric_limits<double>::quiet_NaN(),inf=std::numeric_limits<double>::infinity();

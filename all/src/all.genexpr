@@ -1,4 +1,4 @@
-// All 2.0.0. Feed-forward attenuation, stereo routing and integer delays only.
+// All 2.1.0. Feed-forward attenuation, stereo routing and integer delays only.
 // Finite pseudorandom state, not a physical entropy source or a Bernoulli proof.
 // No repeat rejection, small-change bias, feedback, waveshaper or audio generator.
 
@@ -24,9 +24,10 @@ all_interval(u, maximum) {
     return 1 + floor(u * maximum);
 }
 
-// Independent call-site state. All six curve families have equal-width bins.
-// All event/transition durations use direct uniform sample bins, 1..12 seconds.
-// Repeated targets, durations, shapes and successive one-sample events are legal.
+// Independent call-site state. Five gain/pan curve families have equal-width bins.
+// Gain/pan timing: 1 sample..12 seconds. Delay targets are held for 20 ms..12 s.
+// No sample-wise random modulation or continuous sweeping of delay read addresses.
+// Repeated targets, durations and shapes are legal; no repeat rejection.
 all_motion(seed, tag, initial, kind) {
     History hSeed(-1);
     History hRate(0);
@@ -60,9 +61,13 @@ all_motion(seed, tag, initial, kind) {
     if (mwait <= 0) {
         mfrom = mvalue; mage = 0;
         mu, ma, mb = all_random(ma, mb);
-        mshape = floor(mu * 6);
+        mshape = floor(mu * 5);
         mu, ma, mb = all_random(ma, mb);
         mwait = all_interval(mu, mmaximum);
+        if (kind == 1) {
+            mminimum = max(1, floor(samplerate * 0.02));
+            mwait = mminimum + floor(mu * (mmaximum - mminimum + 1));
+        }
         mu, ma, mb = all_random(ma, mb);
         mperiod = all_interval(mu, mmaximum);
         mu, ma, mb = all_random(ma, mb);
@@ -72,10 +77,13 @@ all_motion(seed, tag, initial, kind) {
         mu, ma, mb = all_random(ma, mb);
         mcycles = 1 + floor(mu * 8);
     }
+    // Delay resolution remains one sample, but its target is held between events.
+    // Changing arbitrary read addresses every sample resampled input into noise.
+    if (kind == 1) { mshape = 0; }
     mage = min(mperiod, mage + 1);
     mp = mage / mperiod;
     mvalue = mto;
-    // 0: hard/hold; 1: linear; 2: smooth; 3: stairs; 4: triangle; 5: sample-wise.
+    // 0: hard/hold; 1: linear; 2: smooth; 3: stairs; 4: triangle.
     if (mshape == 1) { mvalue = mfrom + (mto - mfrom) * mp; }
     else if (mshape == 2) { mvalue = mfrom + (mto - mfrom) * mp * mp * (3 - 2 * mp); }
     else if (mshape == 3) {
@@ -86,9 +94,6 @@ all_motion(seed, tag, initial, kind) {
         mq = mq - floor(mq);
         mvalue = mfrom + (mto - mfrom) * (1 - abs(2 * mq - 1));
         if (mage >= mperiod) { mage = 0; }
-    } else if (mshape == 5) {
-        mu, ma, mb = all_random(ma, mb);
-        mvalue = all_target(mu, kind, mlimit);
     }
     hSeed = mseed; hA = ma; hB = mb; hWait = mwait - 1;
     hAge = mage; hPeriod = mperiod; hFrom = mfrom; hTo = mto;

@@ -1,8 +1,8 @@
-# All 2.0.0
+# All 2.1.0
 
 Eigenständiger Max-for-Live-Audioeffekt mit genau einem Dry/Wet-Regler.
 Die einzelne Datei `All.amxd` enthält alle Laufzeitressourcen.
-In Live als **neue Geräteinstanz** laden; eine bestehende All-1.0-Instanz
+In Live als **neue Geräteinstanz** laden; eine bestehende All-1.0-/2.0-Instanz
 wird dadurch nicht ersetzt. Für Live mit Max for Live und Max 8.5+ vorgesehen.
 
 ## Bedienung und Oberfläche
@@ -43,6 +43,10 @@ Eingang wird durch diese Konstruktion nicht automatisch repariert.
 Verzögerung: 0–2 Sekunden bei 8–192 kHz; kleinste Stufe **ein Sample**,
 keine Fractional-Delay-Interpolation. Höhere Abtastraten bleiben adresssicher,
 die Historie ist dann zusätzlich auf 524.287 Samples begrenzt.
+Delayziele werden zwischen Ereignissen gehalten und frühestens nach 20 ms neu
+gewählt. Es gibt keine kontinuierlichen Delayfahrten oder sampleweise zufälligen
+Leseadressen. Diese Einschränkung betrifft die Modulationsgeschwindigkeit,
+nicht die weiterhin ganzzahlige Ein-Sample-Auflösung der Verzögerung.
 Noch nicht vorhandene Historie ergibt Stille. Nach Ende des Eingangs wird
 spätestens nach Ablauf der maximal zugänglichen Verzögerung auch der Wet-Pfad
 still. Ein Abtastratenwechsel verwirft die alte zugängliche Historie, ohne
@@ -69,13 +73,15 @@ Tempo-Synchronisation, vorbereiteten Szenenfolgen oder Vermeidung von Wiederholu
   Kontrollwerte einschließlich 0 und 1.
 - Delayziele: direkte gleich breite Auswahlintervalle über alle erlaubten
   ganzzahligen Samplepositionen.
-- Ereignisabstände und Übergangsdauern: getrennte Ziehungen aus direkten
-  gleich breiten Sampleintervallen von einem Sample bis zwölf Sekunden.
-- Kurvenfamilien: halten/hart, linear, weich gekrümmt, gestuft, Dreiecksbewegung
-  und sampleweise Zufallswerte; jede Familie hat ein gleich breites Auswahlintervall.
-  Während der sampleweisen Familie wird bei jedem Sample ein neues Ziel gezogen.
+- Gain-/Panning-Ereignisabstände und Übergangsdauern: getrennte Ziehungen aus
+  direkten gleich breiten Sampleintervallen von einem Sample bis zwölf Sekunden.
+- Delay-Ereignisabstände: gleich breite Sampleintervalle zwischen 20 ms und
+  zwölf Sekunden. Das Ziel bleibt bis zum nächsten Ereignis konstant.
+- Fünf Gain-/Panning-Kurvenfamilien: halten/hart, linear, weich gekrümmt,
+  gestuft und Dreiecksbewegung; jede hat ein gleich breites Auswahlintervall.
+  Es werden keine neuen Zufallswerte zwischen Ereignissen gezogen.
 - Keine Potenzgewichtung zugunsten kleiner Werte, kein bevorzugter Random Walk,
-  keine Sonderwahrscheinlichkeit für Null/Identität, keine verkürzten Noise-Bursts.
+  keine Sonderwahrscheinlichkeit für Null/Identität, kein sampleweiser Rauschmodus.
 - Identische Ziele, Zeiten und Kurven dürfen beliebig oft erneut gewählt werden.
   Es gibt keine Bedingung „muss sich ändern“. Neue Ereignisse dürfen auch laufende
   Übergänge unterbrechen. Links/rechts laufen unabhängig; ähnliche oder
@@ -92,6 +98,21 @@ Gleicher Test-Seed bedeutet reproduzierbaren Ablauf. Physikalischer Zufall,
 kryptografische Sicherheit, absolute Unvorhersehbarkeit, ein Bernoulli-System
 oder jede denkbare endliche Folge werden nicht zugesichert. JavaScript läuft
 nicht im Audiotakt.
+
+## Korrektur gegenüber All 2.0
+
+Der sampleweise Zufallsmodus konnte über mehrere Sekunden aus dem Eingangsaudio
+Noise erzeugen, obwohl kein Rauschen addiert wurde. Er ist entfernt.
+Auch das kontinuierliche Verändern ganzzahliger Delayadressen konnte das Material
+stark umsortieren und rauschähnlich klingen; Delayzeiten werden nun gehalten.
+Dies schränkt die vorher uneingeschränkt zugelassenen Modulationsverläufe bewusst
+ein. Einzelne harte Wechsel können weiterhin klicken; ein beliebiges Eingangssignal
+oder alle extremen Modulationsfolgen werden nicht als garantiert rauschfrei bezeichnet.
+
+Ein Fünf-Sekunden-Sinustest mit Seed 3823 reproduziert den Fehler aus 2.0.
+Er misst den Energieanteil des Sinus-Rekurrenzfehlers: vorher etwa 5,96254,
+mit der Korrektur etwa 0,000000640. Das ist ein gezielter Modell-Regressionsnachweis,
+keine allgemeine Klang- oder Native-Host-Zertifizierung.
 
 ## Gegenüber All 1.0
 
@@ -125,7 +146,9 @@ Die Signaltests prüfen insbesondere die Eingangshistorien-Pegelgrenze,
 nichtnegative Stereo-Mischung, Links-Rechts-Übertragung, unabhängige Delays
 derselben Quelle, ganze Samplepositionen, Ring-Wrap, endliche Nachläufe,
 keine Wiederholungsunterdrückung, Verteilungsplausibilität, Stille, ungültige
-Werte, Re-Seeding und Abtastratenwechsel.
+Werte, Re-Seeding und Abtastratenwechsel. Dazu kommen der Fünf-Sekunden-
+Noise-Regressionsfall, konstante Delayzeiten zwischen Ereignissen und der
+abtastratenabhängige Mindestabstand der Delaywechsel.
 
 `tools/native_model.py` übersetzt die tatsächlich ausgelieferten GenExpr-
 Anweisungen in einen eingeschränkten C++-Prüfhost mit geprüften Data-Adressen.

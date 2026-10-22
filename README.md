@@ -1,4 +1,4 @@
-# All — 2.0.0
+# All — 2.1.0
 
 **[All direkt herunterladen (.amxd)](https://github.com/buennobuennobuenno-cell/my-m4l-plugin/raw/refs/heads/main/All.amxd)**
 
@@ -8,7 +8,10 @@ Ableton Live mit Max for Live als **neue Instanz** laden. Startwert: **10 % Wet*
 
 Samplegetaktete Abschwächung und ganzzahlige Delayverläufe mit Stereo-Kreuzmischung.
 **Keine zusätzliche Verstärkung, Rückkopplung oder Verzerrungskennlinie.**
-Harte, weiche, gestufte und sampleweise Veränderungen sind erlaubt.
+Der sampleweise Zufallsmodus aus 2.0 wurde entfernt: Er konnte das Eingangsaudio
+für mehrere Sekunden in Noise zerlegen. Delayziele werden jetzt zwischen
+Wechseln gehalten, mindestens 20 ms; die Delay-Auflösung bleibt ein Sample.
+Harte, weiche und gestufte Amplituden-/Panningverläufe bleiben möglich.
 Keine Bevorzugung kleiner Zufallsziele oder Unterdrückung von Wiederholungen.
 Ein Stereo-Eingangspuffer statt zweier Puffer halbiert den Audio-Speicherbedarf.
 Ein kompakter nativer `gen~`-Kern ersetzt die externe Parameterfernsteuerung.

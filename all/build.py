@@ -9,7 +9,7 @@ sys.path.insert(0, str(ROOT.parent))
 from tools.build import collective
 
 NAME = "All"
-VERSION = "2.0.0"
+VERSION = "2.1.0"
 
 
 def patch():
@@ -83,7 +83,7 @@ def patch():
         "rect": [80, 80, 650, 650], "openrect": [0, 0, 80, 169], "devicewidth": 80.0,
         "openinpresentation": 1, "bglocked": 1,
         "bgcolor": [0.552941, 0.552941, 0.552941, 1],
-        "description": "All 2.0.0 — input-only stereo attenuation and integer-delay randomness. One Dry/Wet control. No feedback or waveshaping.",
+        "description": "All 2.1.0 — held random stereo delays and attenuation. No sample-wise noise modulation, feedback or waveshaping. One Dry/Wet control.",
         "boxes": boxes, "lines": lines,
         "parameters": {"mix": ["Dry/Wet", "Dry/Wet", 0],
             "parameterbanks": {"0": {"index": 0, "name": "All",

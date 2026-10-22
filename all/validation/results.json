@@ -1,18 +1,18 @@
 {
   "date": "2026-10-22",
-  "version": "2.0.0",
+  "version": "2.1.0",
   "artifact": {
     "filename": "All.amxd",
-    "bytes": 20395,
-    "sha256": "fc49a9c75f64ad9bec20e2c96a13c78b8987f80d33b75fc967ab7cee8373d863"
+    "bytes": 20723,
+    "sha256": "d0e3ba461e92e76ec07722edb63cd5f4888bd9829229ff4860b18a6154255a10"
   },
-  "source_sha256": "a8aede3efee2d1d3d4ec89332f377a7d2b81f800c3deb2e3c0efc575d96831fe",
+  "source_sha256": "30a40b57eec21b51a7fab6c9468ab18ead42fae8405034a04cb90afd88529a53",
   "checks": {
     "all_package_python_passed": 10,
-    "all_arithmetic_cpp_passed": 20,
-    "all_cpp_sanitized_passed": 20,
+    "all_arithmetic_cpp_passed": 23,
+    "all_cpp_sanitized_passed": 23,
     "previous_projects_passed": 109,
-    "distinct_project_checks_passed": 139,
+    "distinct_project_checks_passed": 142,
     "failed": 0,
     "skipped": 0
   },
@@ -24,9 +24,24 @@
     "input_abs_max": 1,
     "output_peak_abs": 0.999874,
     "peak_bound": "Each output is bounded by accessible input-history peak, allowing floating-point rounding. Checked with changing input levels and sliding-window maxima.",
-    "all_six_motion_families_frames": 2000000,
     "silence_frames": 1000000,
-    "no_feedback_tail_verified": true
+    "no_feedback_tail_verified": true,
+    "all_five_motion_families_frames": 2000000,
+    "noise_regression": {
+      "scope": "C++ adaptation of shipped GenExpr. Not native Ableton execution or a guarantee for arbitrary audio.",
+      "input": "997 Hz sine, 0.5 amplitude, equal on both inputs, 100% wet",
+      "sample_rate": 48000,
+      "warmup_seconds": 2,
+      "analysis_seconds": 5,
+      "seed": 3823,
+      "old_source_commit": "4bb0aa688ba1596f8f4f0085da1fccccf87fe024",
+      "old_sinus_recurrence_residual_energy_ratio": 5.96254,
+      "corrected_sinus_recurrence_residual_energy_ratio": 6.39975e-07,
+      "maximum_allowed_ratio": 0.01,
+      "old_failed": true,
+      "corrected_passed": true,
+      "scope_of_metric": "Normalized second-order sine recurrence residual, sensitive to sustained broadband modulation; not a calibrated listening or spectral noise measurement."
+    }
   },
   "fixed_bounds": {
     "buffer_frames": 524288,
@@ -47,12 +62,15 @@
     "audio_gain_above_one": false,
     "control_amplitude_values": 65536,
     "event_and_transition_duration_max_seconds": 12,
-    "nonfinite_or_input_above_abs_64": "discarded before storage"
+    "nonfinite_or_input_above_abs_64": "discarded before storage",
+    "delay_target_minimum_hold_seconds": 0.02,
+    "delay_target_interpolation": false,
+    "samplewise_random_motion": false
   },
   "randomness": {
     "generator": "combined ecuyer1988, finite-state PRNG",
-    "target_and_timing_mapping": "direct equal-width bins; no small-value weighting or repeat rejection",
-    "curve_families": 6,
+    "target_and_timing_mapping": "Direct equal-width bins, no small-value weighting or repeat rejection. Gain/pan events 1 sample..12 s; delay targets held 20 ms..12 s; no sample-wise noise family.",
+    "curve_families": 5,
     "audio_dependent_control": false,
     "physical_entropy": false,
     "absolute_unpredictability_guaranteed": false,
@@ -68,18 +86,18 @@
         "sample_rate": 48000,
         "frames": 960000,
         "audio_seconds": 20,
-        "elapsed_seconds": 0.175589,
-        "nanoseconds_per_frame": 182.905,
-        "checksum": 4472.27
+        "elapsed_seconds": 0.0981703,
+        "nanoseconds_per_frame": 102.261,
+        "checksum": 4311.8
       },
       {
-        "scenario": "forced_samplewise_dense",
+        "scenario": "forced_frequent_events",
         "sample_rate": 48000,
         "frames": 960000,
         "audio_seconds": 20,
-        "elapsed_seconds": 0.267141,
-        "nanoseconds_per_frame": 278.272,
-        "checksum": 2557.97
+        "elapsed_seconds": 0.0830183,
+        "nanoseconds_per_frame": 86.4774,
+        "checksum": 3000.28
       }
     ]
   },
